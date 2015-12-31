@@ -57,7 +57,7 @@ PostMesh provides a very intuitive objected oriented API. The wrappers are desig
 ````c++
     // MAKE AN INSTANCE OF PostMeshSurface
     auto curvilinear_mesh = PostMeshSurface();
-    // PASS MESH DATA TO PostMesh - PostMesh takes raw pointers as input arguments
+    // PASS MESH DATA TO PostMesh - PostMesh TAKES RAW POINTERS AS INPUT ARGUMENTS
     curvilinear_mesh.SetMeshElements(elements, elements_rows, elements_cols);
     curvilinear_mesh.SetMeshPoints(points,points_rows, points_cols);
     curvilinear_mesh.SetMeshEdges(edges, edges_rows, edges_cols);
@@ -76,12 +76,14 @@ PostMesh provides a very intuitive objected oriented API. The wrappers are desig
     // EXTRACT TRUE BOUNDARY FACES FROM CAD FILE
     curvilinear_mesh.GetGeomFaces();
     curvilinear_mesh.GetGeomPointsOnCorrespondingFaces();
-    // FIRST IDENTIFY WHICH CURVES CONTAIN WHICH EDGES
+    // FIRST IDENTIFY WHICH SURFACES CONTAIN WHICH FACES
     curvilinear_mesh.IdentifySurfacesContainingFaces();
     // PROJECT ALL BOUNDARY POINTS FROM THE MESH TO THE SURFACE
     curvilinear_mesh.ProjectMeshOnSurface();
-    // PERFORM POINT INVERSION FOR THE INTERIOR POINTS (ORTHOGONAL PROJECTION)
+    // PERFORM POINT INVERSION FOR THE INTERIOR POINTS (ORTHOGONAL POINT PROJECTION)
     curvilinear_mesh.MeshPointInversionSurface();
+    // OBTAIN MODIFIED MESH POINTS - THIS IS NECESSARY TO ENSURE LINEAR MESH IS ALSO CORRECT
+    curvilinear_mesh.ReturnModifiedMeshPoints(points);
     // GET DIRICHLET DATA - (THE DISPLACMENT OF BOUNDARY NODES)
     DirichletData Dirichlet_data = curvilinear_mesh.GetDirichletData();
 
@@ -89,6 +91,7 @@ PostMesh provides a very intuitive objected oriented API. The wrappers are desig
 
 #### A complete Python example: [2D] curve projections for high order triangular elements
 ````python
+    # MAKE AN INSTANCE OF PostMeshCurve
     curvilinear_mesh = PostMeshCurve("tri",2)
     curvilinear_mesh.SetMeshElements(elements)
     curvilinear_mesh.SetMeshPoints(points)
@@ -112,9 +115,9 @@ PostMesh provides a very intuitive objected oriented API. The wrappers are desig
     curvilinear_mesh.IdentifyCurvesContainingEdges()
     # PROJECT ALL BOUNDARY POINTS FROM THE MESH TO THE CURVE
     curvilinear_mesh.ProjectMeshOnCurve()
-    # FIX IMAGES AND ANTI IMAGES IN PERIODIC CURVES/SURFACES
+    # FIX IMAGES AND ANTI IMAGES IN PERIODIC CURVES
     curvilinear_mesh.RepairDualProjectedParameters()
-    # PERFORM POINT INVERSION FOR THE INTERIOR POINTS
+    # PERFORM POINT INVERSION FOR THE INTERIOR POINTS (ARC-LENGTH BASED POINT PROJECTION)
     curvilinear_mesh.MeshPointInversionCurveArcLength()
     # OBTAIN MODIFIED MESH POINTS - THIS IS NECESSARY TO ENSURE LINEAR MESH IS ALSO CORRECT
     curvilinear_mesh.ReturnModifiedMeshPoints(points)
