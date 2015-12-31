@@ -1,7 +1,7 @@
 # PostMesh
 
-![](doc/almond.png)
-![](doc/mech2d.png)
+![almond](doc/almond.png)
+![mech](doc/mech2d.png)
 
 PostMesh is a solid mechanics based a posteriori high order curvilinear mesh generator based on OpenCascade with C++, Cython and Python APIs. It is main goal is to serve as a bridge between CAD representations and high order elements. Hence, it can be used as a plugin with various compiled and interpreted code-bases.
 
@@ -49,7 +49,7 @@ To build Cython/Python bindings
 ### Usage
 PostMesh provides a very intuitive objected oriented API. The wrappers are designed such that C++ and Python code look and feel the same. Have a look at the examples directory to get started with the C++ or Python interface for PostMesh. For conveninece, here are two complete examples.
 
-#### A complete C++ example of 3D surface projections for high order tetrahedral elements
+#### A complete C++ example: [3D] surface projections for high order tetrahedral elements
 ````c++
     // MAKE AN INSTANCE OF PostMeshSurface
     auto curvilinear_mesh = PostMeshSurface();
@@ -83,7 +83,7 @@ PostMesh provides a very intuitive objected oriented API. The wrappers are desig
 
 ````
 
-#### A complete Python example of 2D curve projections for high order triangular elements
+#### A complete Python example: [2D] curve projections for high order triangular elements
 ````python
     curvilinear_mesh = PostMeshCurve("tri",2)
     curvilinear_mesh.SetMeshElements(elements)
