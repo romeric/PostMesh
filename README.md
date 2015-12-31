@@ -115,8 +115,5 @@ PostMesh provides a very intuitive objected oriented API. The wrappers are desig
     # OBTAIN MODIFIED MESH POINTS - THIS IS NECESSARY TO ENSURE LINEAR MESH IS ALSO CORRECT
     curvilinear_mesh.ReturnModifiedMeshPoints(points)
     # GET DIRICHLET DATA - (THE DISPLACMENT OF BOUNDARY NODES)
-    # nodesDBC IS AN ARRAY OF SIZE [NO OF BOUNDARY NODES] CONTAINING 
-    # GLOBAL NODE NUMBERS IN THE ELEMENT CONNECTIVITY AND Dirichlet IS 
-    # THE CORRESPONDING DISPLACEMENT ARRAY [NO OF BOUNDARY NODES x DIMENSIONS]
     nodesDBC, Dirichlet = curvilinear_mesh.GetDirichletData() 
 ````
