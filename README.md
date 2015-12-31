@@ -5,7 +5,7 @@
 <img src="docs/almond.png" width="380">
 <img src="docs/mech2d.png" width="350">
 
-PostMesh is a solid mechanics based a posteriori high order curvilinear mesh generator based on OpenCascade with C++, Cython and Python APIs. It is main goal is to serve as a bridge between CAD representations and high order elements. Hence, it can be used as a plugin with various compiled and interpreted code-bases.
+PostMesh is a solid mechanics based a posteriori high order curvilinear mesh generator based on OpenCascade with C++, Cython and Python APIs. Its main goal is to serve as a bridge between CAD models and high order finite elements. Hence, it can be used as a plugin with various compiled and interpreted code-bases.
 
 ## Philosophy
 PostMesh is an a posteriori approach, in that it requires a linear mesh in advance. Higher order nodes are then placed on the linear mesh and the projection of these nodes to the exact boundary is computed with the CAD library and subsequently fed as the Dirichlet boundary condition to either a linear, a linearised or a non-linear solid mechanics problem.
@@ -49,7 +49,7 @@ To build Cython/Python bindings
     
     
 ### Usage
-PostMesh provides a very intuitive objected oriented API. The wrappers are designed such that C++ and Python code look and feel the same. Have a look at the examples directory to get started with the C++ or Python interface for PostMesh. For conveninece, here are two complete examples.
+PostMesh provides a very intuitive objected oriented API. The wrappers are designed such that the C++ and Python codes look and feel the same. Have a look at the examples directory for getting started with PostMesh. For conveninece, here are two complete examples.
 
 #### A complete C++ example: [3D] surface projections for high order tetrahedral elements
 ````c++
