@@ -650,7 +650,7 @@ void PostMeshCurve::GetElementsWithBoundaryEdgesTri()
         std::vector<Integer> all_rows; all_rows.clear();
         for (auto jedge=0; jedge<this->mesh_edges.cols();++jedge)
         {
-            Eigen::MatrixI rows; //Eigen::MatrixI cols; not needed
+            Eigen::MatrixUI rows; //Eigen::MatrixI cols; not needed
             auto indices = cnp::where_eq(this->mesh_elements,this->mesh_edges(iedge,jedge));
             std::tie(rows,std::ignore) = indices;
 
@@ -663,7 +663,7 @@ void PostMeshCurve::GetElementsWithBoundaryEdgesTri()
         Eigen::MatrixI all_rows_eigen = Eigen::Map<Eigen::MatrixI>(all_rows.data(),all_rows.size(),1);
         for (auto i=0; i<all_rows_eigen.rows(); ++i)
         {
-            Eigen::MatrixI rows_2;
+            Eigen::MatrixUI rows_2;
             auto indices = cnp::where_eq(all_rows_eigen,all_rows_eigen(i));
             std::tie(rows_2,std::ignore) = indices;
             if (rows_2.rows()==this->mesh_edges.cols())
@@ -690,7 +690,7 @@ void PostMeshCurve::GetBoundaryPointsOrder()
 
     for (auto iedge=0;iedge<this->mesh_edges.rows();++iedge)
     {
-        Eigen::MatrixI current_edge = this->mesh_edges.row(iedge).transpose();
+        Eigen::MatrixUI current_edge = this->mesh_edges.row(iedge).transpose();
         Eigen::MatrixI all_points_cols = cnp::arange(this->mesh_points.cols());
         Eigen::MatrixR current_edge_coordinates = cnp::take(this->mesh_points,current_edge,all_points_cols);
         current_edge_coordinates = (current_edge_coordinates.array()/1000.).matrix().eval();

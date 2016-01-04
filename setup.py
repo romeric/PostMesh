@@ -29,13 +29,15 @@ sourcefiles = ["PostMeshPy.pyx",
                 _pwd_+"/src/PostMeshCurve.cpp",
                 _pwd_+"/src/PostMeshSurface.cpp"]
 
-# OpenCascade runtime libraries
-occ_libs = [":libTKIGES.so.9",":libTKSTEP.so.9",":libTKXSBase.so.9",":libTKBRep.so.9",
-        ":libTKernel.so.9",":libTKTopAlgo.so.9",":libTKGeomBase.so.9",":libTKMath.so.9",":libTKHLR.so.9",
-        ":libTKHLR.so.9", ":libTKG3d.so.9", ":libTKBool.so.9", ":libTKG3d.so.9", ":libTKOffset.so.9", ":libTKG2d.so.9",
-        ":libTKXMesh.so.9", ":libTKMesh.so.9", ":libTKMeshVS.so.9",":libTKGeomAlgo.so.9", ":libTKShHealing.so.9", ":libTKFeat.so.9", 
-        ":libTKFillet.so.9", ":libTKBO.so.9", ":libTKPrim.so.9"]
+# Link to OpenCascade runtime libraries
+occ_dir = "/usr/local/lib"
+all_dir_libs = os.listdir(occ_dir)
+occ_libs = []
+for i in all_dir_libs:
+    if i[:4]=="libT" and i.split(".")[-1] != "a" and i.split(".")[-1] != "0":
+        occ_libs.append(":"+i)
 
+        
 # Create extension module
 extensions = [
     Extension(
@@ -43,7 +45,7 @@ extensions = [
         sources = sourcefiles,
     	language="c++",
         include_dirs = [_pwd_,_pwd_+"/include/",
-                        "/home/roman/Dropbox/eigen-devel/",
+                        "/usr/local/include/eigen/",
                         "/usr/local/include/oce/"],
         libraries= ["stdc++"] + occ_libs, 
         library_dirs = [_pwd_,"/usr/local/lib/"],

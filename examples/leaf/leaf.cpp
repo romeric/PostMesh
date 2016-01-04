@@ -20,7 +20,7 @@ int main()
   Eigen::MatrixUI elements = PostMeshBase::ReadI(elem_file,',');
   Eigen::MatrixR points = PostMeshBase::ReadR(point_file,',');
   Eigen::MatrixUI edges = PostMeshBase::ReadI(edge_file,',');
-  Eigen::MatrixUI faces = Eigen::MatrixR::Zero(1,4);
+  Eigen::MatrixUI faces = Eigen::MatrixUI::Zero(1,4);
 
 
   // NODAL SPACING OF POINTS IN THE REFRERENCE TRIANGLE (GAUSS-LOBATTO SPACING IN THS CASE)

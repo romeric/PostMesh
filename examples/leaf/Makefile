@@ -4,7 +4,7 @@ CXX = g++
 CXXFLAGS = -std=c++11
 WARNFLAGS = -Wall -Wextra -Wno-unused
 OPTFLAGS = -O3 -march=native -mtune=native -mfpmath=sse -ffast-math -funroll-loops -finline-functions
-INCFLAGS = -I../../include/ -I/usr/local/include/oce -I/home/roman/Dropbox/eigen-devel
+INCFLAGS = -I../../include/ -I/usr/local/include/oce -I/usr/local/include/eigen/
 
 OCELIBS = -L/usr/local/lib -l:libTKIGES.so.9 -l:libTKSTEP.so.9 \
   -l:libTKXSBase.so.9 -l:libTKBRep.so.9 -l:libTKernel.so.9 \
