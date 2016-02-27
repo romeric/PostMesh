@@ -104,6 +104,7 @@ PostMeshCurve& PostMeshCurve::operator=(PostMeshCurve&& other) noexcept
 
 void PostMeshCurve::InferInterpolationPolynomialDegree()
 {
+    //! WORKS ONLY FOR TRIS
     for (auto i=1; i<50;++i)
     {
         if ( (i+1)*(i+2)/2 == this->mesh_elements.cols())
@@ -116,7 +117,7 @@ void PostMeshCurve::InferInterpolationPolynomialDegree()
 
 void PostMeshCurve::GetCurvesParameters()
 {
-    //! GETS FIRST AND LAST CURVE PARAMTERS AND CHECKS IF THEY ARE CONSECUTIVE
+    //! COMPUTES CURVES BOUNDS IN THE PARAMETRIC SPACE
     this->curves_parameters = Eigen::MatrixR::Zero(this->geometry_curves.size(),2);
     for (UInteger icurve=0; icurve<this->geometry_curves.size(); ++icurve)
     {
@@ -141,7 +142,7 @@ std::vector<std::vector<Real> > PostMeshCurve::DiscretiseCurves(Integer npoints)
 {
     if (this->geometry_curves.empty())
     {
-        warn("Geometry curves are not computed. Compute them first");
+        this->GetGeomEdges();
     }
 
     if (this->dirichlet_edges.isZero(0.))
@@ -279,6 +280,7 @@ void PostMeshCurve::IdentifyCurvesContainingEdges()
 {
     this->dirichlet_edges = Eigen::MatrixI::Zero(this->mesh_edges.rows(),this->ndim+1);
     this->listedges.clear();
+//    this->InferInterpolationPolynomialDegree();
     auto index_edge = 0;
 
     // LOOP OVER EDGES
@@ -324,7 +326,7 @@ void PostMeshCurve::IdentifyCurvesContainingEdges()
                 if (mid_distance < min_mid_distance)
                 {
                     // STORE ID OF CURVES
-                    this->dirichlet_edges(index_edge,2) = icurve; // <--THIS
+                    this->dirichlet_edges(index_edge,2) = icurve; 
                     // RE-ASSIGN
                     min_mid_distance = mid_distance;
                 }
@@ -333,8 +335,8 @@ void PostMeshCurve::IdentifyCurvesContainingEdges()
         }
     }
 
-    auto arr_rows = cnp::arange(index_edge);
-    auto arr_cols = cnp::arange(ndim+1);
+    auto arr_rows = cnp::arange(static_cast<Integer>(index_edge));
+    auto arr_cols = cnp::arange(static_cast<Integer>(ndim)+1);
     this->dirichlet_edges = cnp::take(this->dirichlet_edges,arr_rows,arr_cols);
 }
 
@@ -365,10 +367,9 @@ void PostMeshCurve::ProjectMeshOnCurve()
             // CHECK IF WE ARE ON THE CURVE INTERSECTION
             if (std::abs(x1_curve-x) < projection_precision && \
                     std::abs(y1_curve-y) < projection_precision && \
-                    this->geometry_curves_types[icurve]!=0)
+                    this->geometry_curves_types[icurve]!=GeomAbs_Line)
             {
-                // PROJECT THE CURVE VERTEX INSTEAD OF THE EDGE NODE 
-                // (THIS IS NECESSARY TO ENSURE SUCCESSFUL PROJECTION)
+                // PROJECT THE CURVE VERTEX INSTEAD OF THE EDGE NODE (THIS IS NECESSARY TO ENSURE SUCCESSFUL PROJECTION)
                 x = x1_curve;
                 y = y1_curve;
 
@@ -377,7 +378,7 @@ void PostMeshCurve::ProjectMeshOnCurve()
             }
             else if (std::abs(x2_curve-x) < projection_precision && \
                      std::abs(y2_curve-y) < projection_precision && \
-                     this->geometry_curves_types[icurve]!=0)
+                     this->geometry_curves_types[icurve]!=GeomAbs_Line)
             {
                 x = x2_curve;
                 y = y2_curve;
@@ -404,6 +405,7 @@ void PostMeshCurve::ProjectMeshOnCurve()
             auto curve_length = cnp::length(this->geometry_curves[icurve],1.);
 
             // STORE PROJECTION POINT PARAMETER ON THE CURVE (NORMALISED)
+            //this->projection_U(iedge,inode) = this->scale*parameterU/curve_length; //# THIS
             auto U0 = this->geometry_curves_types[icurve]==0 ? 0. : this->geometry_curves[icurve]->FirstParameter();
             this->projection_U(iedge,inode) =   this->scale*(parameterU-U0)/curve_length;
         }
@@ -475,9 +477,9 @@ void PostMeshCurve::CurvesToBsplineCurves()
     //! CONVERTS ALL IMPORTED CURVES TO BSPLINE CURVES. APART FROM CIRCLE ALL THE REMAINING
     //! CONVERTED CURVES WILL BE NON-PERIODIC http://dev.opencascade.org/doc/refman/html/class_geom_convert.html
     this->geometry_curves_bspline.clear();
-    for (unsigned int icurve=0; icurve < this->geometry_curves.size(); ++icurve)
+    for (auto &icurve: this->geometry_curves)
     {
-        this->geometry_curves_bspline.push_back( GeomConvert::CurveToBSplineCurve(this->geometry_curves[icurve]) );
+        this->geometry_curves_bspline.push_back(GeomConvert::CurveToBSplineCurve(icurve));
     }
 }
 
@@ -485,9 +487,8 @@ void PostMeshCurve::MeshPointInversionCurve()
 {
     this->no_dir_edges = this->dirichlet_edges.rows();
     Integer no_edge_nodes = this->mesh_edges.cols();
-    Eigen::MatrixI arr_row = Eigen::Map<Eigen::Matrix<Integer,
-        Eigen::Dynamic,1> >(this->listedges.data(),this->listedges.size());
-    auto arr_col = cnp::arange(0,no_edge_nodes);
+    Eigen::MatrixI arr_row = Eigen::Map<Eigen::Matrix<Integer,Eigen::Dynamic,1> >(this->listedges.data(),this->listedges.size());
+    auto arr_col = cnp::arange(no_edge_nodes);
     this->nodes_dir = cnp::take(this->mesh_edges,arr_row,arr_col);
     this->nodes_dir = cnp::ravel(this->nodes_dir);
     this->index_nodes = cnp::arange(no_edge_nodes);
@@ -531,8 +532,7 @@ void PostMeshCurve::MeshPointInversionCurve()
                 }
             }
 
-            Eigen::MatrixR gp_pnt_old = (this->mesh_points.row(
-                this->nodes_dir(this->index_nodes(j))).array()/this->scale);
+            Eigen::MatrixR gp_pnt_old = (this->mesh_points.row(this->nodes_dir(this->index_nodes( j ))).array()/this->scale);
 
             if (j>static_cast<decltype(j)>(this->ndim)-1)
             {
@@ -543,8 +543,8 @@ void PostMeshCurve::MeshPointInversionCurve()
             else
             {
                 // FOR VERTEX NODES KEEP THE DISPLACEMENT ZERO
-                this->displacements_BC(this->index_nodes(j),0) = 0.;
-                this->displacements_BC(this->index_nodes(j),1) = 0.;
+                this->displacements_BC(this->index_nodes(j),0) = 0;
+                this->displacements_BC(this->index_nodes(j),1) = 0;
                 // BUT UPDATE THE MESH POINTS
                 this->mesh_points(this->mesh_edges(this->listedges[idir],j),0) = xEq.X();
                 this->mesh_points(this->mesh_edges(this->listedges[idir],j),1) = xEq.Y();
@@ -558,9 +558,8 @@ void PostMeshCurve::MeshPointInversionCurveArcLength()
 {
     this->no_dir_edges = this->dirichlet_edges.rows();
     Integer no_edge_nodes = this->mesh_edges.cols();
-    Eigen::MatrixI arr_row = Eigen::Map<Eigen::Matrix<
-        Integer,Eigen::Dynamic,1> >(this->listedges.data(),this->listedges.size());
-    auto arr_col = cnp::arange(0,no_edge_nodes);
+    Eigen::MatrixI arr_row = Eigen::Map<Eigen::Matrix<Integer,Eigen::Dynamic,1> >(this->listedges.data(),this->listedges.size());
+    auto arr_col = cnp::arange(no_edge_nodes);
     this->nodes_dir = cnp::take(this->mesh_edges,arr_row,arr_col);
     this->nodes_dir = cnp::ravel(this->nodes_dir);
     this->index_nodes = cnp::arange(no_edge_nodes);
@@ -571,7 +570,6 @@ void PostMeshCurve::MeshPointInversionCurveArcLength()
     this->EstimatedParameterUOnMesh();
     this->GetCurvesLengths();
     this->GetCurvesParameters();
-
 
     for (auto idir=0; idir< this->no_dir_edges; ++idir)
     {
@@ -588,6 +586,10 @@ void PostMeshCurve::MeshPointInversionCurveArcLength()
             GCPnts_AbscissaPoint inv;
             Real uEq;
             gp_Pnt xEq;
+
+//            inv = GCPnts_AbscissaPoint(tol,current_curve_adapt,
+//                                       internal_scale*this->u_of_all_fekete_mesh_edges(idir,
+//                                       this->boundary_edges_order(this->listedges[idir],j))*this->scale,0.);
 
             if ( (this->scale-1.)<1e-14)
             {
@@ -609,8 +611,7 @@ void PostMeshCurve::MeshPointInversionCurveArcLength()
 
             }
 
-            Eigen::MatrixR gp_pnt_old = (this->mesh_points.row(
-                this->nodes_dir(this->index_nodes(j))).array()/this->scale);
+            Eigen::MatrixR gp_pnt_old = (this->mesh_points.row(this->nodes_dir(this->index_nodes( j ))).array()/this->scale);
 
             if (j>static_cast<decltype(j)>(this->ndim)-1)
             {
@@ -623,7 +624,7 @@ void PostMeshCurve::MeshPointInversionCurveArcLength()
                 // FOR VERTEX NODES KEEP THE DISPLACEMENT ZERO
                 this->displacements_BC(this->index_nodes(j),0) = 0.;
                 this->displacements_BC(this->index_nodes(j),1) = 0.;
-                // BUT UPDATE THE MESH POINTS TO CONFORM TO CAD GEOMETRY
+                // BUT UPDATE THE MESH POINTS
                 this->mesh_points(this->mesh_edges(this->listedges[idir],j),0) = xEq.X();
                 this->mesh_points(this->mesh_edges(this->listedges[idir],j),1) = xEq.Y();
             }
@@ -650,7 +651,7 @@ void PostMeshCurve::GetElementsWithBoundaryEdgesTri()
         std::vector<Integer> all_rows; all_rows.clear();
         for (auto jedge=0; jedge<this->mesh_edges.cols();++jedge)
         {
-            Eigen::MatrixUI rows; //Eigen::MatrixI cols; not needed
+            Eigen::MatrixUI rows;
             auto indices = cnp::where_eq(this->mesh_elements,this->mesh_edges(iedge,jedge));
             std::tie(rows,std::ignore) = indices;
 
@@ -677,12 +678,12 @@ void PostMeshCurve::GetElementsWithBoundaryEdgesTri()
 
 void PostMeshCurve::GetBoundaryPointsOrder()
 {
-    //! THE EDGE CONNECTIVITY ORDER
+    //! THE ORDER OF BOUNDARY EDGE CONNECTIVITY. NEEDS THE DEGREE TO BE INFERRED A PRIORI
     this->InferInterpolationPolynomialDegree();
 
     this->boundary_points_order = Eigen::MatrixI::Zero(this->fekete.rows(),this->fekete.cols());
     this->boundary_points_order(1) = this->fekete.rows()-1;
-    this->boundary_points_order.block(2,0,fekete.rows()-2,1) = cnp::arange(1,fekete.rows()-1);
+    this->boundary_points_order.block(2,0,fekete.rows()-2,1) = cnp::arange(static_cast<Integer>(1),fekete.rows()-1);
 
     // FOR ALL THE EDGES
     this->boundary_edges_order = Eigen::MatrixI::Zero(this->mesh_edges.rows(),this->mesh_edges.cols());
@@ -691,7 +692,7 @@ void PostMeshCurve::GetBoundaryPointsOrder()
     for (auto iedge=0;iedge<this->mesh_edges.rows();++iedge)
     {
         Eigen::MatrixUI current_edge = this->mesh_edges.row(iedge).transpose();
-        Eigen::MatrixI all_points_cols = cnp::arange(this->mesh_points.cols());
+        Eigen::MatrixUI all_points_cols = cnp::arange(static_cast<UInteger>(this->mesh_points.cols()));
         Eigen::MatrixR current_edge_coordinates = cnp::take(this->mesh_points,current_edge,all_points_cols);
         current_edge_coordinates = (current_edge_coordinates.array()/1000.).matrix().eval();
 
@@ -786,16 +787,14 @@ void PostMeshCurve::EstimatedParameterUOnMesh()
 
 DirichletData PostMeshCurve::GetDirichletData()
 {
-    
     // OBTAIN DIRICHLET DATA
     DirichletData Dirichlet_data;
     // CONVERT FROM EIGEN TO STL VECTOR
     std::vector<Integer> nodes_Dirichlet_data_stl;
     nodes_Dirichlet_data_stl.assign(this->nodes_dir.data(),this->nodes_dir.data()+this->nodes_dir.rows());
     // FIND UNIQUE VALUES OF DIRICHLET DATA
-    std::vector<Integer> uniques;
     std::vector<UInteger> idx;
-    std::tie(uniques,idx) = cnp::unique(nodes_Dirichlet_data_stl);
+    std::tie(std::ignore,idx) = cnp::unique(nodes_Dirichlet_data_stl);
 
     Dirichlet_data.nodes_dir_out_stl.resize(idx.size());
     Dirichlet_data.displacement_BC_stl.resize(this->ndim*idx.size());

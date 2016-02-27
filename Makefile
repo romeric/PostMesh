@@ -28,7 +28,6 @@ $(LIBS): $(SRCS)
 	$(CXX) $(CXXFLAGS) $(DYNFLAGS) $(WARNFLAGS) $(OPTFLAGS) $(INCFLAGS) $^ -o $@
 
 PREFIX = /usr/local/lib
-# PREFIX = ~/.local/lib
 
 install: $(LIBS)
 	install -m 0755 $(LIBS) $(PREFIX)

@@ -6,11 +6,13 @@
 <img src="docs/mech2d.png" width="350">
 <img src="docs/wing2d.png" width="320">
 <img src="docs/torus.png" width="350">
+<img src="docs/F6Iso_2.png" width="800">
+<img src="docs/f6BL_58.png" width="800">
 
 **PostMesh** is a solid mechanics based a posteriori high order curvilinear mesh generator based on OpenCascade with C++, Cython and Python APIs. Its main goal is to serve as a bridge between CAD models and high order finite elements. Hence, it can be used as a plugin with various compiled and interpreted code-bases.
 
 ## Philosophy
-PostMesh is an a posteriori approach, in that it requires a linear mesh in advance. Higher order nodes are then placed on the linear mesh and the projection of these nodes to the exact boundary is computed with the CAD library and subsequently fed as the Dirichlet boundary condition to either a linear, a linearised or a non-linear solid mechanics problem.
+PostMesh is an a posteriori curvilinear mesh generator, in that it requires a linear mesh in advance. Higher order nodes are then placed on the linear mesh and the projection of these nodes to the exact boundary is computed with the CAD library and subsequently fed as the Dirichlet boundary condition to either a linear, a linearised or a non-linear solid mechanics problem.
 
 ## Build Requirements
 PostMesh depends on the following third party libraries:
@@ -79,7 +81,9 @@ PostMesh provides a very intuitive objected oriented API. The wrappers are desig
     // FIRST IDENTIFY WHICH SURFACES CONTAIN WHICH FACES
     curvilinear_mesh.IdentifySurfacesContainingFaces();
     // PROJECT ALL BOUNDARY POINTS FROM THE MESH TO THE SURFACE
-    curvilinear_mesh.ProjectMeshOnSurface();
+    // THE INPUT ARGUMENTS SPECIFY PROJECTION ON CURVE INTERSECTIONS
+    // AND MODIFICATION OF THE LINEAR MESH IF NECESSARY
+    curvilinear_mesh.ProjectMeshOnSurface(1,1);
     // PERFORM POINT INVERSION FOR THE INTERIOR POINTS (ORTHOGONAL POINT PROJECTION)
     curvilinear_mesh.MeshPointInversionSurface();
     // OBTAIN MODIFIED MESH POINTS - THIS IS NECESSARY TO ENSURE LINEAR MESH IS ALSO CORRECT

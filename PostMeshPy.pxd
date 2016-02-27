@@ -26,8 +26,8 @@ cdef extern from "PostMeshCurve.hpp":
         void SetCondition(const Real &condition)
         void SetProjectionPrecision(const Real &precision)
         void SetProjectionCriteria(UInteger *criteria, Integer &rows, Integer &cols)
-        void SetMeshElements(UInteger *arr, const Integer &rows, const Integer &cols)
         void ComputeProjectionCriteria()
+        void SetMeshElements(UInteger *arr, const Integer &rows, const Integer &cols)
         void SetMeshPoints(Real *arr, Integer &rows, Integer &cols)
         void SetMeshEdges(UInteger *arr, const Integer &rows, const Integer &cols)
         void SetMeshFaces(UInteger *arr, const Integer &rows, const Integer &cols)
@@ -66,8 +66,8 @@ cdef extern from "PostMeshSurface.hpp":
         void SetCondition(Real &condition)
         void SetProjectionPrecision(const Real &precision)
         void SetProjectionCriteria(UInteger *criteria, Integer &rows, Integer &cols)
-        void ComputeProjectionCriteria()
         void SetMeshElements(UInteger *arr, const Integer &rows, const Integer &cols)
+        void ComputeProjectionCriteria()
         void SetMeshPoints(Real *arr, Integer &rows, Integer &cols)
         void SetMeshEdges(UInteger *arr, const Integer &rows, const Integer &cols)
         void SetMeshFaces(UInteger *arr, const Integer &rows, const Integer &cols)
@@ -83,19 +83,25 @@ cdef extern from "PostMeshSurface.hpp":
         Integer NbCurves()
         Integer NbSurfaces()
         void GetSurfacesParameters()
-        # void GetCurvesLengths()
         void GetGeomPointsOnCorrespondingFaces()
+        void IdentifyRemainingSurfacesByProjection()
+        void IdentifySurfacesContainingFacesByPureProjection()
         void IdentifySurfacesContainingFaces()
-        # void ProjectMeshOnCurve()
+        void IdentifySurfacesIntersections()
+        void SupplySurfacesContainingFaces(const Integer *arr, Integer rows, Integer already_mapped, Integer caller)
         void ProjectMeshOnSurface()
-        void MeshPointInversionSurface()
+        void RepairDualProjectedParameters()
+        void MeshPointInversionSurface(Integer project_on_curves, Integer modify_linear_mesh)
+        void MeshPointInversionSurfaceArcLength(Integer project_on_curves, Real OrthTol, Real *FEbases, Integer rows, Integer cols)
         void ReturnModifiedMeshPoints(Real *points)
+        vector[vector[Integer]] GetMeshFacesOnPlanarSurfaces()
+        vector[Integer] GetDirichletFaces()
         DirichletData GetDirichletData()
         
 
 cdef extern from "PyInterfaceEmulator.hpp": 
     
-    DirichletData ComputeDirichleteData(const char* iges_filename, Real scale, 
+    DirichletData ComputeDirichleteData (const char* iges_filename, Real scale, 
         Real* points_array, Integer points_rows, Integer points_cols, 
         UInteger* elements_array, const Integer element_rows, const Integer element_cols, 
         UInteger* edges, const Integer edges_rows, const Integer edges_cols,
@@ -104,7 +110,7 @@ cdef extern from "PyInterfaceEmulator.hpp":
         UInteger* criteria, const Integer criteria_rows, const Integer criteria_cols, 
         const Real precision)
 
-    DirichletData ComputeDirichleteData3D(const char* iges_filename, Real scale, 
+    DirichletData ComputeDirichleteData3D (const char* iges_filename, Real scale, 
         Real* points_array, Integer points_rows, Integer points_cols, 
         UInteger* elements_array, const Integer element_rows, const Integer element_cols, 
         UInteger* edges, const Integer edges_rows, const Integer edges_cols,

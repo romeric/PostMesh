@@ -6,6 +6,8 @@
 #include <EIGEN_INC.hpp>
 #endif
 
+#include <OCC_INC.hpp>
+
 //! AUXILARY FUNCTIONS FOR POSTMESH
 ALWAYS_INLINE std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
     //! SPLIT STRINGS
@@ -26,17 +28,31 @@ ALWAYS_INLINE std::vector<std::string> split(const std::string &s, char delim) {
 
 
 template<typename T>
-ALWAYS_INLINE void print(std::vector<T> arr)
+ALWAYS_INLINE void print(std::vector<T>& arr)
 {
     //! PRINT FUNCTION OVERLOADED FOR STL VECTORS
-    //! EASIER TO BIND EVERYTHING WITH PRINT FUNCTION
-    //! RATHER THAN BINDING WITH OPERATOR <<
 
-    //typeid(arr[0]).name();
-    std::cout << std::endl;
+    std::cout << "\n";
     for (typename std::vector<T>::const_iterator i=arr.begin(); i<arr.end();++i)
     {
-        std::cout <<  *i << std::endl;
+        std::cout <<  *i << "\n";
+    }
+    std::cout << std::endl;
+}
+
+template<typename T>
+ALWAYS_INLINE void print(std::vector<std::vector<T> >& arr)
+{
+    //! PRINT FUNCTION OVERLOADED FOR STL VECTORS OF VECTORS
+
+    std::cout << "\n";
+    for (auto &i: arr)
+    {
+        for (auto &j: i)
+        {
+            std::cout << j << " ";
+        }
+        std::cout << "\n";
     }
     std::cout << std::endl;
 }
@@ -45,7 +61,7 @@ template <typename T>
 ALWAYS_INLINE void print(T&& last)
 {
     //! PRINT FUNCTION OVERLOADED FOR GENERIC TYPE T
-    std::cout << last << std::endl;
+    std::cout << last << "\n";
 }
 
 template <typename U, typename... T>
@@ -54,6 +70,12 @@ ALWAYS_INLINE void print(U&& first, T&&... rest)
     //! PRINT FUNCTION OVERLOADED USING VARIADIC TEMPLATE ARGUMENTS
     std::cout << first << " ";
     print(std::forward<T>(rest)...);
+}
+
+ALWAYS_INLINE void print(gp_Pnt pnt, Real scale = 1.)
+{
+    //! PRINT FUNCTION OVERLOADED USING gp_Pnt
+    std::cout << pnt.X()/scale << "  " << pnt.Y()/scale << "  " << pnt.Z()/scale << "\n";
 }
 
 template <typename T>
@@ -117,26 +139,6 @@ std::chrono::duration<double> timer(T (*func)(Params...), Args&&...args)
     //! then
     //!
     //!     timer(simple_mul_ptr,a,b);
-    //!
-    //! If you pass mutating functions that take pointers as input
-    //! arguments you need to cast them separately, for instance
-    //!
-    //!     void mutating_func(double *arr,double num)
-    //!         arr[6] = num;
-    //!
-    //! pass it as
-    //!
-    //!     timeit(static_cast<void (*)(double*,double)>(&mutating_func),
-    //!         static_cast<double*>,double)
-    //!
-    //! The need to cast double* as double* is because of reference collapsing
-    //! and special argument deduction rule that happens at timeit function
-    //!     timeit(T (*func)(Args...), Args&&...args)
-    //! here double* is deduced as double*& for the second pack of arguments i.e.
-    //! (Args&&...args) [which is due to special argument deduction rule]
-    //! and double* is deduced as double* for first pack of arguments i.e.
-    //! (*func)(Args...) and hence the compiler will not be able to resolve
-    //! the signature of timeit function properly
 
 
 
@@ -311,5 +313,5 @@ ALWAYS_INLINE std::string getexepath()
 }
 
 
-#endif // AUX_FUNCS_HPP
 
+#endif // AUX_FUNCS_HPP

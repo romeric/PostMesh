@@ -27,6 +27,7 @@
  #endif
 
 
+
 typedef int64_t Integer;
 typedef uint64_t UInteger;
 typedef double Real;
@@ -36,7 +37,7 @@ typedef bool Boolean;
 #define True  true
 
 
-// Control function inlining more aggressively
+// CONTROL FUNCTION INLINING
 #if defined(__GNUC__) || defined(__GNUG__)
     #define ALWAYS_INLINE inline __attribute__((always_inline))
     #define NEVER_INLINE __attribute__((noinline))
@@ -50,4 +51,3 @@ typedef bool Boolean;
 #define INF std::numeric_limits<double>::infinity()
 
 #endif // STD_INC_HPP
-

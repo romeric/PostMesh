@@ -202,10 +202,13 @@ public:
     std::vector<Handle_Geom_Surface> geometry_surfaces;
     std::vector<UInteger> geometry_curves_types;
     std::vector<UInteger> geometry_surfaces_types;
+    std::vector<TopoDS_Edge> topo_edges;
+    std::vector<TopoDS_Face> topo_faces;
     Eigen::MatrixR displacements_BC;
     Eigen::MatrixI index_nodes;
     Eigen::MatrixUI nodes_dir;
     Eigen::MatrixR fekete;
+
 
 private:
     void SetDimension(const UInteger &dim)
