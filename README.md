@@ -81,11 +81,11 @@ PostMesh provides a very intuitive objected oriented API. The wrappers are desig
     // FIRST IDENTIFY WHICH SURFACES CONTAIN WHICH FACES
     curvilinear_mesh.IdentifySurfacesContainingFaces();
     // PROJECT ALL BOUNDARY POINTS FROM THE MESH TO THE SURFACE
+    curvilinear_mesh.ProjectMeshOnSurface();
+    // PERFORM POINT INVERSION FOR THE INTERIOR POINTS (ORTHOGONAL POINT PROJECTION)
     // THE INPUT ARGUMENTS SPECIFY PROJECTION ON CURVE INTERSECTIONS
     // AND MODIFICATION OF THE LINEAR MESH IF NECESSARY
-    curvilinear_mesh.ProjectMeshOnSurface(1,1);
-    // PERFORM POINT INVERSION FOR THE INTERIOR POINTS (ORTHOGONAL POINT PROJECTION)
-    curvilinear_mesh.MeshPointInversionSurface();
+    curvilinear_mesh.MeshPointInversionSurface(1,1);
     // OBTAIN MODIFIED MESH POINTS - THIS IS NECESSARY TO ENSURE LINEAR MESH IS ALSO CORRECT
     curvilinear_mesh.ReturnModifiedMeshPoints(points);
     // GET DIRICHLET DATA - (THE DISPLACMENT OF BOUNDARY NODES)
