@@ -128,3 +128,6 @@ PostMesh provides a very intuitive objected oriented API. The wrappers are desig
     # GET DIRICHLET DATA - (THE DISPLACMENT OF BOUNDARY NODES)
     nodesDBC, Dirichlet = curvilinear_mesh.GetDirichletData() 
 ````
+
+## Disclaimer
+PostMesh is not a plug-and-play software. As mentioned before it serves as an addon/plugin to finite element solvers, in that it only provides the Dirichlet boundary conditions that can be fed into any elasticity solver. In other words, it does not compute the displacement of the interior nodes in the mesh.  
