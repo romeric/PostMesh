@@ -6,8 +6,8 @@
 <img src="docs/mech2d.png" width="350">
 <img src="docs/wing2d.png" width="320">
 <img src="docs/torus.png" width="350">
-<img src="docs/F6Iso_2.png" width="800">
-<img src="docs/f6BL_58.png" width="800">
+<img src="docs/F6Iso_2.png" width="900">
+<img src="docs/f6BL_58.png" width="900">
 
 **PostMesh** is a solid mechanics based a posteriori high order curvilinear mesh generator based on OpenCascade with C++, Cython and Python APIs. Its main goal is to serve as a bridge between CAD models and high order finite elements. Hence, it can be used as a plugin with various compiled and interpreted code-bases.
 
