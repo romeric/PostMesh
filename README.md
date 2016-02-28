@@ -53,7 +53,7 @@ To build Cython/Python bindings
     
     
 ### Usage
-PostMesh provides a very intuitive objected oriented API. The wrappers are designed such that the C++ and Python codes look and feel the same. Have a look at the examples directory for getting started with PostMesh. For conveninece, here are two complete examples.
+PostMesh provides a very intuitive objected oriented API. The interfaces are designed such that C++ and Python codes look and feel the same. Have a look at the examples directory for getting started with PostMesh. For conveninece, here are two complete examples.
 
 #### A complete C++ example: [3D] surface projections for high order tetrahedral elements
 ````c++
@@ -88,45 +88,32 @@ PostMesh provides a very intuitive objected oriented API. The wrappers are desig
     curvilinear_mesh.MeshPointInversionSurface(1,1);
     // OBTAIN MODIFIED MESH POINTS - THIS IS NECESSARY TO ENSURE LINEAR MESH IS ALSO CORRECT
     curvilinear_mesh.ReturnModifiedMeshPoints(points);
-    // GET DIRICHLET DATA - (THE DISPLACMENT OF BOUNDARY NODES)
+    // OBTAIN DIRICHLET DATA - (THE DISPLACMENT OF BOUNDARY NODES)
     DirichletData Dirichlet_data = curvilinear_mesh.GetDirichletData();
 
 ````
 
 #### A complete Python example: [2D] curve projections for high order triangular elements
+Although all C++ methods are also available in Python, there are some convenience functions defined at Python level that can help shorten the script,  
 ````python
     # MAKE AN INSTANCE OF PostMeshCurve
     curvilinear_mesh = PostMeshCurve("tri",2)
-    curvilinear_mesh.SetMeshElements(elements)
-    curvilinear_mesh.SetMeshPoints(points)
-    curvilinear_mesh.SetMeshEdges(edges)
-    curvilinear_mesh.SetMeshFaces(np.zeros((1,4),dtype=np.uint64))
     curvilinear_mesh.SetScale(scale)
     curvilinear_mesh.SetCondition(condition)
+    # SET MESH
+    curvilinear_mesh.SetMesh(elements=elements, points=points, edges=edges, 
+        faces=np.zeros((1,4),dtype=np.uint64),spacing=nodal_spacing,scale_mesh=True)
     curvilinear_mesh.SetProjectionPrecision(1.0e-04)
     curvilinear_mesh.ComputeProjectionCriteria()
-    curvilinear_mesh.ScaleMesh()
-    curvilinear_mesh.SetNodalSpacing(nodal_spacing.reshape(9,1))
     curvilinear_mesh.GetBoundaryPointsOrder()
-    # READ THE GEOMETRY FROM THE IGES FILE
-    curvilinear_mesh.ReadIGES(iges_filename)
-    # EXTRACT GEOMETRY INFORMATION FROM THE IGES FILE
-    geometry_points = curvilinear_mesh.GetGeomVertices()
-    curvilinear_mesh.GetGeomEdges()
-    curvilinear_mesh.GetGeomFaces()
-    curvilinear_mesh.GetGeomPointsOnCorrespondingEdges()
-    # FIRST IDENTIFY WHICH CURVES CONTAIN WHICH EDGES
-    curvilinear_mesh.IdentifyCurvesContainingEdges()
-    # PROJECT ALL BOUNDARY POINTS FROM THE MESH TO THE CURVE
-    curvilinear_mesh.ProjectMeshOnCurve()
-    # FIX IMAGES AND ANTI IMAGES IN PERIODIC CURVES
-    curvilinear_mesh.RepairDualProjectedParameters()
-    # PERFORM POINT INVERSION FOR THE INTERIOR POINTS (ARC-LENGTH BASED POINT PROJECTION)
-    curvilinear_mesh.MeshPointInversionCurveArcLength()
+    # SET CAD GEOMETRY
+    curvilinear_mesh.SetGeometry(cad_filename)
+    # PERFORM POINT PROJECTION AND POINT INVERSION
+    curvilinear_mesh.PerformPointProjectionInversionCurve(projection_type="arc_length")
     # OBTAIN MODIFIED MESH POINTS - THIS IS NECESSARY TO ENSURE LINEAR MESH IS ALSO CORRECT
     curvilinear_mesh.ReturnModifiedMeshPoints(points)
-    # GET DIRICHLET DATA - (THE DISPLACMENT OF BOUNDARY NODES)
-    nodesDBC, Dirichlet = curvilinear_mesh.GetDirichletData() 
+    # OBTAIN DIRICHLET DATA - (THE DISPLACMENT OF BOUNDARY NODES)
+    Dirichlet_nodes, Dirichlet_values = curvilinear_mesh.GetDirichletData() 
 ````
 
 ## Disclaimer

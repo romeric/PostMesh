@@ -7,7 +7,6 @@
 class PostMeshSurface: public PostMeshBase
 {
 
-
 public:
     PostMeshSurface() : PostMeshBase()
     {
@@ -32,7 +31,6 @@ public:
         this->mesh_element_type = "tet";
         this->scale = 1.0;
         this->condition = 1.0e10;
-
     }
 
     void InferInterpolationPolynomialDegree();
@@ -51,7 +49,6 @@ public:
     void MeshPointInversionSurfaceArcLength(Integer project_on_curves, Real OrthTol, Real *FEbases, Integer rows, Integer cols);
     void GetBoundaryPointsOrder();
     std::vector<std::vector<Integer> > GetMeshFacesOnPlanarSurfaces();
-    DirichletData GetDirichletData();
     std::vector<Integer> GetDirichletFaces();
 
 

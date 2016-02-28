@@ -101,13 +101,13 @@ void PostMeshSurface::InferInterpolationPolynomialDegree()
 
 void PostMeshSurface::SurfacesToBsplineSurfaces()
 {
-    //! CONVERST ALL SURFACES TO BSPLINE SURFACES: 
+    //! CONVERST ALL SURFACES TO BSPLINE SURFACES:
     //! http://dev.opencascade.org/doc/refman/html/class_geom_convert.html
-    
+
     this->geometry_surfaces_bspline.clear();
     for (unsigned int isurf=0; isurf < this->geometry_surfaces.size(); ++isurf)
     {
-        this->geometry_surfaces_bspline.push_back( 
+        this->geometry_surfaces_bspline.push_back(
                     GeomConvert::SurfaceToBSplineSurface(this->geometry_surfaces[isurf]) );
     }
 }
@@ -577,10 +577,6 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
             }
         }
     }
-
-//    print(dirichlet_faces);
-//    print(this->projection_ID);
-//    exit(EXIT_FAILURE);
 }
 
 void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
@@ -762,7 +758,7 @@ void PostMeshSurface::SupplySurfacesContainingFaces(const Integer *arr, Integer 
     //! NOTE THAT THIS FUNCTION ASSUMES THAT THE EXTERNAL FACE-T0-SURFACE CORRESPONDENCE
     //! SUPPLIED, IS MORE ACCURATE THAN THE INTERNAL (OPENCASADE ONE). HOWEVER, IT IS
     //! POSSIBLE THAT THE SURFACE NUMBERING OF EXTERNALLY PROVIDED SOFTWARE AND OPENCASCADE
-    //! ARE DIFFERENT IN WHICH CASE. FOR SUCH CASES SUPPLY ALREADY_MAPPED FLAG AS ZERO
+    //! ARE DIFFERENT. FOR SUCH CASES SUPPLY ALREADY_MAPPED FLAG AS ZERO
 
     Eigen::MatrixI dirichlet_faces_ext = Eigen::MatrixI::Ones(rows,this->ndim+1)*(-1);
     this->listfaces.clear();
@@ -952,8 +948,7 @@ void PostMeshSurface::ProjectMeshOnSurface()
                         std::abs(y_surface-y) < projection_precision && \
                         std::abs(z_surface-z) < projection_precision )
                 {
-                    // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE 
-                    // THIS IS NECESSARY TO ENSURE SUCCESSFUL PROJECTION
+                    // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE (THIS IS NECESSARY TO ENSURE SUCCESSFUL PROJECTION)
                     x = x_surface;
                     y = y_surface;
                     z = z_surface;
@@ -1203,8 +1198,7 @@ void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integ
     }
 }
 
-void PostMeshSurface::MeshPointInversionSurfaceArcLength(Integer project_on_curves, 
-    Real OrthTol, Real *FEbases, Integer rows, Integer cols)
+void PostMeshSurface::MeshPointInversionSurfaceArcLength(Integer project_on_curves, Real OrthTol, Real *FEbases, Integer rows, Integer cols)
 {
     if (project_on_curves==1)
     {
@@ -1257,8 +1251,7 @@ void PostMeshSurface::MeshPointInversionSurfaceArcLength(Integer project_on_curv
                 current_surface->D0(parametric_surface(j,0),parametric_surface(j,1),xEq);
 
                 // TRY PROJECTION AS WELL TO RESOLVE FOR INCORRECT NODES
-                auto xEq_Orthogonal = gp_Pnt(gp_pnt_old(0)*this->scale,
-                    gp_pnt_old(1)*this->scale,gp_pnt_old(2)*this->scale);
+                auto xEq_Orthogonal = gp_Pnt(gp_pnt_old(0)*this->scale,gp_pnt_old(1)*this->scale,gp_pnt_old(2)*this->scale);
 
                 try
                 {
@@ -1364,31 +1357,4 @@ std::vector<Integer> PostMeshSurface::GetDirichletFaces()
     dirichlet_faces_stl.assign(this->dirichlet_faces.data(),
                                this->dirichlet_faces.data()+this->dirichlet_faces.rows()*this->dirichlet_faces.cols());
     return dirichlet_faces_stl;
-}
-
-DirichletData PostMeshSurface::GetDirichletData()
-{
-    // OBTAIN DIRICHLET DATA
-    DirichletData Dirichlet_data;
-    // CONVERT FROM EIGEN TO STL VECTOR
-    std::vector<Integer> nodes_Dirichlet_data_stl;
-    nodes_Dirichlet_data_stl.assign(this->nodes_dir.data(),this->nodes_dir.data()+this->nodes_dir.rows());
-    // FIND UNIQUE VALUES OF DIRICHLET DATA
-    std::vector<UInteger> idx;
-    std::tie(std::ignore,idx) = cnp::unique(nodes_Dirichlet_data_stl);
-
-    Dirichlet_data.nodes_dir_out_stl.resize(idx.size());
-    Dirichlet_data.displacement_BC_stl.resize(this->ndim*idx.size());
-    Dirichlet_data.nodes_dir_size = idx.size();
-
-    for (UInteger i=0; i<idx.size(); ++i)
-    {
-        Dirichlet_data.nodes_dir_out_stl[i] = nodes_Dirichlet_data_stl[idx[i]];
-        for (UInteger j=0; j<this->ndim; ++j)
-        {
-            Dirichlet_data.displacement_BC_stl[this->ndim*i+j] = this->displacements_BC(idx[i],j);
-        }
-    }
-
-    return Dirichlet_data;
 }

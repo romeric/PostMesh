@@ -326,7 +326,8 @@ void PostMeshCurve::IdentifyCurvesContainingEdges()
                 if (mid_distance < min_mid_distance)
                 {
                     // STORE ID OF CURVES
-                    this->dirichlet_edges(index_edge,2) = icurve; 
+                    this->dirichlet_edges(index_edge,2) = icurve; // <--THIS
+//                    this->dirichlet_edges(index_edge,2) = this->geometry_curves_types[icurve]; // CHECK THIS
                     // RE-ASSIGN
                     min_mid_distance = mid_distance;
                 }
@@ -783,31 +784,4 @@ void PostMeshCurve::EstimatedParameterUOnMesh()
             }
         }
     }
-}
-
-DirichletData PostMeshCurve::GetDirichletData()
-{
-    // OBTAIN DIRICHLET DATA
-    DirichletData Dirichlet_data;
-    // CONVERT FROM EIGEN TO STL VECTOR
-    std::vector<Integer> nodes_Dirichlet_data_stl;
-    nodes_Dirichlet_data_stl.assign(this->nodes_dir.data(),this->nodes_dir.data()+this->nodes_dir.rows());
-    // FIND UNIQUE VALUES OF DIRICHLET DATA
-    std::vector<UInteger> idx;
-    std::tie(std::ignore,idx) = cnp::unique(nodes_Dirichlet_data_stl);
-
-    Dirichlet_data.nodes_dir_out_stl.resize(idx.size());
-    Dirichlet_data.displacement_BC_stl.resize(this->ndim*idx.size());
-    Dirichlet_data.nodes_dir_size = idx.size();
-
-    for (UInteger i=0; i<idx.size(); ++i)
-    {
-        Dirichlet_data.nodes_dir_out_stl[i] = nodes_Dirichlet_data_stl[idx[i]];
-        for (UInteger j=0; j<this->ndim; ++j)
-        {
-            Dirichlet_data.displacement_BC_stl[this->ndim*i+j] = this->displacements_BC(idx[i],j);
-        }
-    }
-
-    return Dirichlet_data;
 }

@@ -44,7 +44,7 @@ for i in all_dir_libs:
 # Create extension module
 extensions = [
     Extension(
-        name = "PostMesh",  
+        name = "PostMeshPy",  
         sources = sourcefiles,
         language="c++",
         include_dirs = [_pwd_,_pwd_+"/include/",
@@ -60,8 +60,8 @@ extensions = [
 
 setup(
     ext_modules = cythonize(extensions),
-    name = "PostMesh",
-    version = "1.1",
+    name = "PostMeshPy",
+    version = "1.2",
     description = "A Python wrapper for PostMesh - a high order curvilinear mesh generator based on OpenCascade",
     author="Roman Poya",
     author_email = "r.poya@swansea.ac.uk",
