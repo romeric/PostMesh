@@ -744,10 +744,6 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
             this->dirichlet_faces(i,3) = this->projection_ID(i,0);
         }
     }
-
-//    print(dirichlet_faces);
-//    print(this->projection_ID);
-//    exit(EXIT_FAILURE);
 }
 
 void PostMeshSurface::SupplySurfacesContainingFaces(const Integer *arr, Integer rows, Integer already_mapped, Integer caller)
@@ -822,7 +818,6 @@ void PostMeshSurface::SupplySurfacesContainingFaces(const Integer *arr, Integer 
         //! GET THE MAXIMUM OCCURENCE FROM ITEMFREQ AND CHANGE THE REMAINING
         //! INTERNAL ROWS BASED ON THAT
         Eigen::MatrixI flags_int = cnp::take(this->dirichlet_faces,urows,col);
-        // Eigen::MatrixI flags_ext = cnp::take(dirichlet_faces_ext,urows,col);
         auto freqs_int = cnp::itemfreq(flags_int);
         if (freqs_int.rows()==1)
         {
@@ -948,7 +943,8 @@ void PostMeshSurface::ProjectMeshOnSurface()
                         std::abs(y_surface-y) < projection_precision && \
                         std::abs(z_surface-z) < projection_precision )
                 {
-                    // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE (THIS IS NECESSARY TO ENSURE SUCCESSFUL PROJECTION)
+                    // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE 
+                    // THIS IS NECESSARY TO ENSURE SUCCESSFUL PROJECTION
                     x = x_surface;
                     y = y_surface;
                     z = z_surface;
@@ -1198,7 +1194,8 @@ void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integ
     }
 }
 
-void PostMeshSurface::MeshPointInversionSurfaceArcLength(Integer project_on_curves, Real OrthTol, Real *FEbases, Integer rows, Integer cols)
+void PostMeshSurface::MeshPointInversionSurfaceArcLength(Integer project_on_curves, 
+    Real OrthTol, Real *FEbases, Integer rows, Integer cols)
 {
     if (project_on_curves==1)
     {

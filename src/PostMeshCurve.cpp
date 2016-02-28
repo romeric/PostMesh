@@ -280,7 +280,6 @@ void PostMeshCurve::IdentifyCurvesContainingEdges()
 {
     this->dirichlet_edges = Eigen::MatrixI::Zero(this->mesh_edges.rows(),this->ndim+1);
     this->listedges.clear();
-//    this->InferInterpolationPolynomialDegree();
     auto index_edge = 0;
 
     // LOOP OVER EDGES
@@ -327,7 +326,6 @@ void PostMeshCurve::IdentifyCurvesContainingEdges()
                 {
                     // STORE ID OF CURVES
                     this->dirichlet_edges(index_edge,2) = icurve; // <--THIS
-//                    this->dirichlet_edges(index_edge,2) = this->geometry_curves_types[icurve]; // CHECK THIS
                     // RE-ASSIGN
                     min_mid_distance = mid_distance;
                 }
@@ -370,7 +368,8 @@ void PostMeshCurve::ProjectMeshOnCurve()
                     std::abs(y1_curve-y) < projection_precision && \
                     this->geometry_curves_types[icurve]!=GeomAbs_Line)
             {
-                // PROJECT THE CURVE VERTEX INSTEAD OF THE EDGE NODE (THIS IS NECESSARY TO ENSURE SUCCESSFUL PROJECTION)
+                // PROJECT THE CURVE VERTEX INSTEAD OF THE EDGE NODE 
+                // THIS IS NECESSARY TO ENSURE SUCCESSFUL PROJECTION
                 x = x1_curve;
                 y = y1_curve;
 
@@ -488,7 +487,8 @@ void PostMeshCurve::MeshPointInversionCurve()
 {
     this->no_dir_edges = this->dirichlet_edges.rows();
     Integer no_edge_nodes = this->mesh_edges.cols();
-    Eigen::MatrixI arr_row = Eigen::Map<Eigen::Matrix<Integer,Eigen::Dynamic,1> >(this->listedges.data(),this->listedges.size());
+    Eigen::MatrixI arr_row = Eigen::Map<Eigen::Matrix<Integer,
+        Eigen::Dynamic,1> >(this->listedges.data(),this->listedges.size());
     auto arr_col = cnp::arange(no_edge_nodes);
     this->nodes_dir = cnp::take(this->mesh_edges,arr_row,arr_col);
     this->nodes_dir = cnp::ravel(this->nodes_dir);

@@ -18,7 +18,5 @@ examples/leaf/leaf
 examples/sphere/sphere
 
 # record files
-files.txt
-makke_file.sh
 PostMeshPy.cpp
 
