@@ -94,7 +94,7 @@ PostMesh provides a very intuitive objected oriented API. The interfaces are des
 ````
 
 #### A complete Python example: [2D] curve projections for high order triangular elements
-Although all C++ methods are also available in Python, there are some convenience functions defined at Python level that can help shorten the script,  
+Although all C++ methods are also available in Python, there are some convenience functions defined at Python level that can help shorten the script  
 ````python
     # MAKE AN INSTANCE OF PostMeshCurve
     curvilinear_mesh = PostMeshCurve("tri",2)
