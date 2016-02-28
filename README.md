@@ -17,8 +17,8 @@ PostMesh is an a posteriori curvilinear mesh generator, in that it requires a li
 ## Build Requirements
 PostMesh depends on the following third party libraries:
 
-- **C++11 compatible compiler**
 - **[GNU make]**        - build process
+- **C++11 compatible compiler** - Rvalue references, variadic templates, lambdas etc
 - **[OpenCascade]**     - CAD processing
 - **[Eigen]**           - Matrix operations and SIMD vectorisation
 - **[Cython]**          - Cython bindings
