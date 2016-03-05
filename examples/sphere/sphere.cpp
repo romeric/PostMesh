@@ -4,7 +4,7 @@
 
 int main()
 {
-  // THIS IS AN EXAMPLE OF A SPHERE MESHED WITH QUARTIC (P=4)
+  // THIS IS AN EXAMPLE OF A SPHERE MESH WITH QUARTIC (P=4)
   // TETRAHEDRAL FINITE ELEMENTS
 
   // GET PROBLEM PATH
@@ -34,10 +34,10 @@ int main()
   // THIS IS IMPORTANT AS MOST CAD LIBRARIES SCALE UP/DOWN 
   // IMPORTED CADD FILES
   Real scale = 1000.;
-  // THIS CONDITION TELLS PostMesh IF ALL THE POINTS IN THE MESH
-  // FALL WITHIN CAD GEOMETRY OR IF THERE ARE POINST OUTISDE WHICH
-  // DO NOT TO BE PROJECTED
-  Real condition = 1.0e10;
+  // THIS CONDITION TELLS PostMesh IF ALL THE BOUNDARY POINTS 
+  // IN THE MESH REQUIRE PROJECTION - ANY BOUNDARY POINT FALLING 
+  // WITHIN THIS RADIUS WOULD BE PROJECTED
+  Real radius = 1.0e10;
   // PRECISION TOLERANCE BETWEEN CAD GEOMETRY AND MESH DATA.
   // NORMALLY, DUE TO MESH DATA AND CAD GEOMETRY COMING FROM DIFFERENT
   // SOURCES, THERE'S AN ARITHMATIC PRECISION ISSUE. THIS PRECISION TELLS
@@ -48,13 +48,13 @@ int main()
 
   // MAKE AN INSTANCE OF PostMeshSurface
   auto curvilinear_mesh = PostMeshSurface();
-  // PASS MESH DATA TO PostMesh - PostMesh takes raw pointers as input arguments
+  // PASS MESH DATA TO PostMesh - PostMesh TAKES RAW BUFFERS/POINTERS AS INPUT ARGUMENTS
   curvilinear_mesh.SetMeshElements(elements.data(), elements.rows(), elements.cols());
   curvilinear_mesh.SetMeshPoints(points.data(),points.rows(), points.cols());
   curvilinear_mesh.SetMeshEdges(edges.data(), edges.rows(), edges.cols());
   curvilinear_mesh.SetMeshFaces(faces.data(),  faces.rows(),  faces.cols());
   curvilinear_mesh.SetScale(scale);
-  curvilinear_mesh.SetCondition(condition);
+  curvilinear_mesh.SetCondition(radius);
   curvilinear_mesh.SetProjectionPrecision(precision);
   curvilinear_mesh.ComputeProjectionCriteria();
   curvilinear_mesh.ScaleMesh();
