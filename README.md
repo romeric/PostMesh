@@ -34,7 +34,7 @@ PostMesh depends on the following third party libraries:
 Installing these dependencies on a linux distribution is straight-forward. For building OpenCascade on Debian based systems, [here](https://github.com/jmwright/pythonocc_oce_setup) is an automated shell script.
 
 ## Installation
-To build PostMesh shared library for C++ API, perform the following
+To build PostMesh shared library for C++ API, you typically do
 
     git clone https://github.com/romeric/PostMesh
     cd PostMesh
@@ -46,9 +46,8 @@ To further build the C++ examples, after cloning the repository and entering Pos
     cd examples
     make
     
-To build Cython/Python bindings
+To build Cython/Python bindings (make sure you are in PostMesh directory)
 
-    git clone https://github.com/romeric/PostMesh
     [sudo] python setup.py install
     
     
