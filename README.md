@@ -125,7 +125,9 @@ PostMesh can be cited as
     year="2016",
     volume="58",
     number="3",
-    pages="457--490"
+    pages="457--490",
+    doi={10.1007/s00466-016-1302-2},
+    url={https://link.springer.com/article/10.1007/s00466-016-1302-2}
 }
 ````
 
