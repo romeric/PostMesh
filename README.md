@@ -9,7 +9,7 @@
 <img src="docs/F6Iso_2.png" width="900">
 <img src="docs/f6BL_58.png" width="900">
 
-**PostMesh** is a solid mechanics based a posteriori high order curvilinear mesh generator based on OpenCascade with C++, Cython and Python APIs. Its main goal is to serve as a bridge between CAD models and high order finite elements. Hence, it can be used as a plugin with various compiled and interpreted code-bases.
+**PostMesh** is a solid mechanics based a posteriori high order curvilinear mesh generator based on OpenCascade with C++, Cython and Python APIs. Its main goal is to serve as a bridge between CAD models and high order finite element schemes. Hence, it can be used as a plugin with various compiled and interpreted code-bases.
 
 ## Philosophy
 PostMesh is an a posteriori curvilinear mesh generator, in that it requires a linear mesh in advance. Higher order nodes are then placed on the linear mesh and the projection of these nodes to the exact boundary is computed with the CAD library and subsequently fed as the Dirichlet boundary condition to either a linear, a linearised or a non-linear solid mechanics problem.
@@ -17,12 +17,12 @@ PostMesh is an a posteriori curvilinear mesh generator, in that it requires a li
 ## Build Requirements
 PostMesh depends on the following third party libraries:
 
-- **[GNU make]**        - build process
-- **C++11 compatible compiler** - Rvalue references, variadic templates, lambdas etc
-- **[OpenCascade]**     - CAD processing
-- **[Eigen]**           - Matrix operations and SIMD vectorisation
-- **[Cython]**          - Cython bindings
-- **[NumPy]**           - Python interface
+- **[GNU make]**                     - build process
+- **C++11 compatible compiler**      - Rvalue references, variadic templates, lambdas etc
+- **[OpenCascade]**                  - CAD processing
+- **[Eigen]**                        - Matrix operations and SIMD vectorisation
+- **[Cython]**                       - Cython bindings
+- **[NumPy]**                        - Python interface
 
 
 [GNU make]:     http://www.gnu.org/software/make
@@ -115,5 +115,19 @@ Although all C++ methods are also available in Python, there are some convenienc
     Dirichlet_nodes, Dirichlet_values = curvilinear_mesh.GetDirichletData() 
 ````
 
+## Reference/Citation
+PostMesh can be cited as
+````latex
+@Article{Poya2016,
+    author="Poya, Roman and Sevilla, Ruben and Gil, Antonio J.",
+    title="A unified approach for a posteriori high-order curved mesh generation using solid mechanics",
+    journal="Computational Mechanics",
+    year="2016",
+    volume="58",
+    number="3",
+    pages="457--490"
+}
+````
+
 ## Disclaimer
-PostMesh is not a *plug-and-play* software. As mentioned before it serves as an addon/plugin to finite element solvers, in that it only provides the Dirichlet boundary conditions that can be fed into an elasticity solver. In other words, it does not compute the displacement of the interior nodes in the mesh.  
+PostMesh does not directly produce curved volume meshes, but rather curved surface meshes. As mentioned before, the latter step can be achieved byrelying on a elasticity solver.  
