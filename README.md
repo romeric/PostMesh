@@ -2,12 +2,14 @@
 
 <!--![almond](doc/almond.png)-->
 <!--![mech](doc/mech2d.png)-->
+<div>
 <img src="docs/almond.png" width="35%" height="35%">
 <img src="docs/mech2d.png" width="35%" height="35%">
 <img src="docs/wing2d.png" width="35%" height="35%">
 <img src="docs/torus.png"  width="35%" height="35%">
 <img src="docs/F6Iso_2.png" width="95%" height="95%">
 <img src="docs/f6BL_58.png" width="95%" height="95%">
+</div>
 
 **PostMesh** is a solid mechanics based a posteriori high order curvilinear mesh generator based on OpenCascade with C++, Cython and Python APIs. Its main goal is to serve as a bridge between CAD models and high order finite element schemes. Hence, it can be used as a plugin with various compiled and interpreted code-bases.
 
