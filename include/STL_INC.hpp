@@ -16,6 +16,7 @@
 #include <chrono>
 #include <memory>
 #include <algorithm>
+#include <numeric>
 #include <utility>
 #include <limits>
 #ifdef WINDOWS
@@ -28,8 +29,8 @@
 
 
 
-typedef int64_t Integer;
-typedef uint64_t UInteger;
+typedef long long Integer;
+typedef unsigned long long UInteger;
 typedef double Real;
 typedef bool Boolean;
 

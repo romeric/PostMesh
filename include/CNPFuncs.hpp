@@ -33,15 +33,15 @@ arange(T b=1)
 
     Integer a = 0;
     return Eigen::Matrix<T,DYNAMIC,1,
-            POSTMESH_ALIGNED>::LinSpaced(Eigen::Sequential,(b-a),a,b-1);
+            POSTMESH_ALIGNED>::LinSpaced(Integer(Integer(b)-a),Integer(a),Integer(Integer(b)-1));
 }
 
-template<typename T, typename U>
-Eigen::PlainObjectBase<T>
-STATIC take(const Eigen::PlainObjectBase<T> &arr, const Eigen::PlainObjectBase<U> &arr_row, const Eigen::PlainObjectBase<U> &arr_col)
+template<typename T, typename U, typename V>
+STATIC ALWAYS_INLINE T
+take(const Eigen::PlainObjectBase<T> &arr, const Eigen::PlainObjectBase<U> &arr_row, const Eigen::PlainObjectBase<V> &arr_col)
 {
     //! TAKE OUT PART OF A 2D ARRAY. MAKES A COPY
-    Eigen::PlainObjectBase<T> arr_reduced;
+    T arr_reduced;
     arr_reduced.setZero(arr_row.rows(),arr_col.rows());
 
     for (auto i=0; i<arr_row.rows();i++)
@@ -56,14 +56,13 @@ STATIC take(const Eigen::PlainObjectBase<T> &arr, const Eigen::PlainObjectBase<U
 }
 
 template<typename T>
-Eigen::PlainObjectBase<T>
-STATIC take(const Eigen::PlainObjectBase<T> &arr, const Eigen::MatrixI &arr_idx)
+STATIC ALWAYS_INLINE T take(const Eigen::PlainObjectBase<T> &arr, const Eigen::MatrixI &arr_idx)
 {
     //! TAKE OUT PART OF A 2D ARRAY. MAKES A COPY
     assert (arr_idx.rows()<=arr.rows());
     assert (arr_idx.cols()<=arr.cols());
 
-    Eigen::PlainObjectBase<T> arr_reduced;
+    T arr_reduced;
     arr_reduced.setZero(arr_idx.rows(),arr_idx.cols());
 
     for (auto i=0; i<arr_idx.rows();i++)
@@ -167,7 +166,7 @@ STATIC void sort_back_rows(Eigen::PlainObjectBase<T> &arr, const Eigen::MatrixI 
 
     for (auto i=0; i<arr.rows(); ++i)
     {
-        Eigen::PlainObjectBase<T> current_row;
+        T current_row;
         current_row.setZero(1,arr.cols());
         for (auto j=0; j<arr.cols(); ++j)
         {
@@ -188,7 +187,7 @@ ravel(Eigen::Matrix<T,DYNAMIC,DYNAMIC,POSTMESH_ALIGNED> &arr)
 
 template<typename T, typename U = T>
 std::tuple<Eigen::MatrixUI,Eigen::MatrixUI >
-STATIC where_eq(const Eigen::PlainObjectBase<T> &arr,
+STATIC ALWAYS_INLINE where_eq(const Eigen::PlainObjectBase<T> &arr,
          U num, Real tolerance=1e-14)
 {
     //! FIND THE OCCURENCES OF VALUE IN A MATRIX
@@ -199,7 +198,7 @@ STATIC where_eq(const Eigen::PlainObjectBase<T> &arr,
     {
         for (Integer j=0; j<arr.cols();++j)
         {
-            if (static_cast<Real>(abs(arr(i,j)-num))<tolerance)
+            if (Real( std::fabs((Real)arr(i,j)-num) ) < tolerance)
             {
                 idx_rows.push_back(i);
                 idx_cols.push_back(j);
@@ -231,7 +230,7 @@ append(const Eigen::PlainObjectBase<T> &arr, U num)
 }
 
 template<typename T>
-STATIC std::vector<std::vector<T> >
+STATIC ALWAYS_INLINE std::vector<std::vector<T> >
 toSTL(const Eigen::Matrix<T,DYNAMIC,DYNAMIC,POSTMESH_ALIGNED> &arr)
 {
     //! CONVERT EIGEN MATRIX TO STL VECTOR OF VECTORS.
@@ -251,7 +250,7 @@ toSTL(const Eigen::Matrix<T,DYNAMIC,DYNAMIC,POSTMESH_ALIGNED> &arr)
 }
 
 template<typename T>
-STATIC Eigen::Matrix<T,DYNAMIC,DYNAMIC,POSTMESH_ALIGNED>
+STATIC ALWAYS_INLINE Eigen::Matrix<T,DYNAMIC,DYNAMIC,POSTMESH_ALIGNED>
 toEigen(const std::vector<std::vector<T> > &arr_stl)
 {
     //! CONVERT STL VECTOR OF VECTORS TO EIGEN MATRIX.
@@ -269,7 +268,7 @@ toEigen(const std::vector<std::vector<T> > &arr_stl)
 }
 
 template <typename T>
-STATIC std::vector<T> intersect(const std::vector<T>& vec1, const std::vector<T>& vec2)
+STATIC ALWAYS_INLINE std::vector<T> intersect(const std::vector<T>& vec1, const std::vector<T>& vec2)
 {
     std::vector<T> commons;
     for (auto &iter1: vec1)
@@ -288,7 +287,7 @@ STATIC std::vector<T> intersect(const std::vector<T>& vec1, const std::vector<T>
 }
 
 template <typename T, typename ... Rest>
-STATIC std::vector<T> intersect(const std::vector<T>& vec1, const std::vector<T>& vec2, const std::vector<Rest>& ... rest)
+STATIC ALWAYS_INLINE std::vector<T> intersect(const std::vector<T>& vec1, const std::vector<T>& vec2, const std::vector<Rest>& ... rest)
 {
     auto commons = intersect(vec1,vec2);
     commons = intersect(commons,rest...);
@@ -296,7 +295,7 @@ STATIC std::vector<T> intersect(const std::vector<T>& vec1, const std::vector<T>
 }
 
 template<typename T>
-STATIC std::tuple<std::vector<typename Eigen::PlainObjectBase<T>::Scalar>,std::vector<Integer> >
+STATIC ALWAYS_INLINE std::tuple<std::vector<typename Eigen::PlainObjectBase<T>::Scalar>,std::vector<Integer> >
 unique(const Eigen::PlainObjectBase<T> &arr)
 {
     //! RETURNS UNIQUE VALUES AND UNIQUE INDICES OF AN EIGEN MATRIX
@@ -334,7 +333,7 @@ unique(const Eigen::PlainObjectBase<T> &arr)
 }
 
 template<typename T>
-STATIC std::tuple<std::vector<T>,std::vector<Integer> > 
+STATIC ALWAYS_INLINE std::tuple<std::vector<T>,std::vector<Integer> > 
 unique(const std::vector<T> &v, bool return_index=false) 
 {
     //! RETURNS UNIQUE VALUES AND UNIQUE INDICES OF A STD::VECTOR
@@ -361,12 +360,12 @@ unique(const std::vector<T> &v, bool return_index=false)
 }
 
 template<typename T>
-Eigen::PlainObjectBase<T> itemfreq(const Eigen::PlainObjectBase<T> &arr)
+STATIC ALWAYS_INLINE T itemfreq(const Eigen::PlainObjectBase<T> &arr)
 {
     //! FINDS THE NUMBER OF OCCURENCE OF EACH VALUE IN AN EIGEN MATRIX
     std::vector<typename Eigen::PlainObjectBase<T>::Scalar> uniques;
     std::tie(uniques,std::ignore) = unique(arr);
-    Eigen::PlainObjectBase<T> freqs;
+    T freqs;
     freqs.setZero(uniques.size(),2);
 
     auto counter = 0;
@@ -382,6 +381,7 @@ Eigen::PlainObjectBase<T> itemfreq(const Eigen::PlainObjectBase<T> &arr)
 }
 
 template<typename T>
+STATIC ALWAYS_INLINE
 Eigen::Matrix<T,DYNAMIC,DYNAMIC,POSTMESH_ALIGNED> itemfreq(const std::vector<T> &arr)
 {
     //! FINDS THE NUMBER OF OCCURENCE OF EACH VALUE IN A VECTOR

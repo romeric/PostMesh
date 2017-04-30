@@ -2,12 +2,12 @@
 
 <!--![almond](doc/almond.png)-->
 <!--![mech](doc/mech2d.png)-->
-<img src="docs/almond.png" width="380">
-<img src="docs/mech2d.png" width="350">
-<img src="docs/wing2d.png" width="320">
-<img src="docs/torus.png" width="350">
-<img src="docs/F6Iso_2.png" width="900">
-<img src="docs/f6BL_58.png" width="900">
+<img src="docs/almond.png" width="45%" height="45%">
+<img src="docs/mech2d.png" width="45%" height="45%">
+<img src="docs/wing2d.png" width="45%" height="45%">
+<img src="docs/torus.png" width="45%" height="45%">
+<img src="docs/F6Iso_2.png" width="95%" height="95%">
+<img src="docs/f6BL_58.png" width="95%" height="95%">
 
 **PostMesh** is a solid mechanics based a posteriori high order curvilinear mesh generator based on OpenCascade with C++, Cython and Python APIs. Its main goal is to serve as a bridge between CAD models and high order finite element schemes. Hence, it can be used as a plugin with various compiled and interpreted code-bases.
 
@@ -132,4 +132,4 @@ PostMesh can be cited as
 ````
 
 ## Disclaimer
-PostMesh does not directly produce curved volume meshes, but rather curved surface meshes. As mentioned before, the former step can be achieved by relying on a elasticity solver.  
+PostMesh does not directly produce curved volume meshes, but rather curved surface meshes. As mentioned before, the former step can be achieved by relying on a solid mechanics solver.  

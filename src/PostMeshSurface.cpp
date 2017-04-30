@@ -1103,7 +1103,7 @@ void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integ
     auto arr_col = cnp::arange(no_face_nodes);
     this->nodes_dir = cnp::take(this->mesh_faces,arr_row,arr_col);
     this->nodes_dir = cnp::ravel(this->nodes_dir);
-    this->index_nodes = cnp::arange(no_face_nodes);
+    this->index_nodes = cnp::arange(Integer(no_face_nodes));
     this->displacements_BC = Eigen::MatrixR::Zero(this->no_dir_faces*no_face_nodes,this->ndim);
 
     if (this->curve_surface_projection_flags.rows() != this->dirichlet_faces.rows())
@@ -1210,7 +1210,7 @@ void PostMeshSurface::MeshPointInversionSurfaceArcLength(Integer project_on_curv
     auto arr_col = cnp::arange(no_face_nodes);
     this->nodes_dir = cnp::take(this->mesh_faces,arr_row,arr_col);
     this->nodes_dir = cnp::ravel(this->nodes_dir);
-    this->index_nodes = cnp::arange(no_face_nodes);
+    this->index_nodes = cnp::arange(Integer(no_face_nodes));
     this->displacements_BC = Eigen::MatrixR::Zero(this->no_dir_faces*no_face_nodes,this->ndim);
 
     for (auto idir=0; idir< this->no_dir_faces; ++idir)
