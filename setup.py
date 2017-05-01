@@ -1,4 +1,3 @@
-# from distutils.core import setup
 from setuptools import setup
 from distutils.command.clean import clean
 from distutils.extension import Extension
@@ -81,7 +80,7 @@ extensions = [
 setup(
     ext_modules = cythonize(extensions),
     name = "PostMeshPy",
-    version = "1.2",
+    version = "1.3",
     description = "A Python wrapper for PostMesh - a high order curvilinear mesh generator based on OpenCascade",
     author="Roman Poya",
     author_email = "r.poya@swansea.ac.uk",
