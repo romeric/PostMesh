@@ -51,10 +51,12 @@ To further build the C++ examples, after cloning the repository and entering Pos
 To build Cython/Python bindings (make sure you are in PostMesh directory)
 
     [sudo] python setup.py install
-    # or using pip
+
+Or using `pip`
+
     python setup.py build_ext
     python setup.py bdist_wheel
-    cd .. & pip install PostMesh
+    cd .. && pip install PostMesh
     
     
 ### Usage
