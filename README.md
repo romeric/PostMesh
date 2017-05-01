@@ -52,7 +52,7 @@ To build Cython/Python bindings (make sure you are in PostMesh directory)
 
     [sudo] python setup.py install
 
-Or using `pip`
+Or using pip
 
     python setup.py build_ext
     python setup.py bdist_wheel
