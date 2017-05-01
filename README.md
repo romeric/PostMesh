@@ -56,7 +56,7 @@ Or using pip
 
     python setup.py build_ext
     python setup.py bdist_wheel
-    cd .. && pip install PostMesh
+    cd .. && pip install PostMesh/
     
     
 ### Usage
