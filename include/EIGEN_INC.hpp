@@ -32,6 +32,10 @@
 
 namespace Eigen {
 // DEFINE Real, Integer AND UInteger BASED MATRICES
+typedef Eigen::Matrix<Real,DYNAMIC,1,POSTMESH_ALIGNED> VectorR;
+typedef Eigen::Matrix<Integer,DYNAMIC,1,POSTMESH_ALIGNED> VectorI;
+typedef Eigen::Matrix<Real,1,DYNAMIC,POSTMESH_ALIGNED> RowVectorR;
+typedef Eigen::Matrix<Integer,1,DYNAMIC,POSTMESH_ALIGNED> RowVectorI;
 typedef Eigen::Matrix<Real,DYNAMIC,DYNAMIC,POSTMESH_ALIGNED> MatrixR;
 typedef Eigen::Matrix<Integer,DYNAMIC,DYNAMIC,POSTMESH_ALIGNED> MatrixI;
 typedef Eigen::Matrix<UInteger,DYNAMIC,DYNAMIC,POSTMESH_ALIGNED> MatrixUI;

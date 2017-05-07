@@ -19,6 +19,7 @@
 #include <numeric>
 #include <utility>
 #include <limits>
+#include <stdexcept>
 #ifdef WINDOWS
     #include <direct.h>
     #define GetCurrentDir _getcwd

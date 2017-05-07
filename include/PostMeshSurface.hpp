@@ -71,6 +71,18 @@ protected:
     Eigen::MatrixI elements_with_boundary_faces;
     Eigen::MatrixI curve_surface_projection_flags;
 
+    ALWAYS_INLINE Integer GetNoFaceVertices() {
+        if (mesh_element_type=="tet") {
+            return 3;
+        }
+        else if (mesh_element_type == "hex") {
+            return 4;
+        }
+        else {
+            throw std::runtime_error(std::string("Element type not understood"));
+            return -1;
+        }
+    }
     std::vector<Boolean> FindPlanarSurfaces();
 };
 
