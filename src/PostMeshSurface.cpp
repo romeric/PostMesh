@@ -88,13 +88,26 @@ PostMeshSurface& PostMeshSurface::operator=(PostMeshSurface&& other) noexcept
 
 void PostMeshSurface::InferInterpolationPolynomialDegree()
 {
-    //! ONLY FOR TETS
-    for (auto i=1; i<50;++i)
-    {
-        if ( (i+1)*(i+2)*(i+3)/6 == this->mesh_elements.cols())
+    const auto current_cols = this->mesh_elements.cols();
+    constexpr auto max_iter = 50;
+    if (this->mesh_element_type == "tet") {
+        for (auto i=1; i<max_iter;++i)
         {
-            this->degree = i;
-            break;
+            if ( (i+1)*(i+2)*(i+3)/6 == current_cols)
+            {
+                this->degree = i;
+                break;
+            }
+        }
+    }
+    else if (this->mesh_element_type == "hex") {
+        for (auto i=1; i<max_iter;++i)
+        {
+            if ( (i+1)*(i+1)*(i+1) == current_cols)
+            {
+                this->degree = i;
+                break;
+            }
         }
     }
 }
@@ -155,12 +168,9 @@ void PostMeshSurface::GetGeomPointsOnCorrespondingFaces()
 
             counter++;
         }
-        const auto &current_face_X_ = static_cast<Eigen::MatrixR>
-                (Eigen::Map<Eigen::MatrixR>(current_face_X.data(),current_face_X.size(),1));
-        const auto &current_face_Y_ = static_cast<Eigen::MatrixR>
-                (Eigen::Map<Eigen::MatrixR>(current_face_Y.data(),current_face_Y.size(),1));
-        const auto &current_face_Z_ = static_cast<Eigen::MatrixR>
-                (Eigen::Map<Eigen::MatrixR>(current_face_Z.data(),current_face_Z.size(),1));
+        Eigen::MatrixR current_face_X_ = Eigen::Map<Eigen::MatrixR>(current_face_X.data(),current_face_X.size(),1);
+        Eigen::MatrixR current_face_Y_ = Eigen::Map<Eigen::MatrixR>(current_face_Y.data(),current_face_Y.size(),1);
+        Eigen::MatrixR current_face_Z_ = Eigen::Map<Eigen::MatrixR>(current_face_Z.data(),current_face_Z.size(),1);
 
         Eigen::MatrixR current_face_coords(current_face_X_.rows(),3*current_face_X_.cols());
         current_face_coords << current_face_X_, current_face_Y_, current_face_Z_;
@@ -172,7 +182,7 @@ void PostMeshSurface::GetGeomPointsOnCorrespondingFaces()
 void PostMeshSurface::IdentifySurfacesContainingFaces()
 {
     //! IDENTIFY GEOMETRICAL SURFACES CONTAINING MESH FACES
-    this->dirichlet_faces = Eigen::MatrixI::Ones(this->mesh_faces.rows(),this->ndim+1)*(-1);
+    this->dirichlet_faces = Eigen::MatrixI::Constant(this->mesh_faces.rows(),this->mesh_faces.cols()+1,-1);
     this->listfaces.clear();
 
     auto index_face = 0;
@@ -191,22 +201,29 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
                this->dirichlet_faces(index_face,iter) = this->mesh_faces(iface,iter);
             }
 
-            // GET THE COORDINATES OF THE FACE VERTICES (VERTICES OF TRIANGLE)
-            auto x1 = this->mesh_points(this->mesh_faces(iface,0),0);
-            auto y1 = this->mesh_points(this->mesh_faces(iface,0),1);
-            auto z1 = this->mesh_points(this->mesh_faces(iface,0),2);
+            // GET THE COORDINATES OF THE FACE VERTICES (VERTICES OF TRIANGLE/QUADS)
+            Eigen::MatrixR face_vertices(this->mesh_faces.cols(),ndim);
+            for (auto i=0; i<this->mesh_faces.cols(); ++i) {
+                for (auto j=0; j<ndim; ++j) {
+                    face_vertices(i,j) = this->mesh_points(this->mesh_faces(iface,i),j);
+                }
+            }
+            // auto x1 = this->mesh_points(this->mesh_faces(iface,0),0);
+            // auto y1 = this->mesh_points(this->mesh_faces(iface,0),1);
+            // auto z1 = this->mesh_points(this->mesh_faces(iface,0),2);
 
-            auto x2 = this->mesh_points(this->mesh_faces(iface,1),0);
-            auto y2 = this->mesh_points(this->mesh_faces(iface,1),1);
-            auto z2 = this->mesh_points(this->mesh_faces(iface,1),2);
+            // auto x2 = this->mesh_points(this->mesh_faces(iface,1),0);
+            // auto y2 = this->mesh_points(this->mesh_faces(iface,1),1);
+            // auto z2 = this->mesh_points(this->mesh_faces(iface,1),2);
 
-            auto x3 = this->mesh_points(this->mesh_faces(iface,2),0);
-            auto y3 = this->mesh_points(this->mesh_faces(iface,2),1);
-            auto z3 = this->mesh_points(this->mesh_faces(iface,2),2);
+            // auto x3 = this->mesh_points(this->mesh_faces(iface,2),0);
+            // auto y3 = this->mesh_points(this->mesh_faces(iface,2),1);
+            // auto z3 = this->mesh_points(this->mesh_faces(iface,2),2);
 
-            std::vector<Integer> mins_1;
-            std::vector<Integer> mins_2;
-            std::vector<Integer> mins_3;
+            // std::vector<Integer> mins_1;
+            // std::vector<Integer> mins_2;
+            // std::vector<Integer> mins_3;
+            std::vector<std::vector<Integer>> mins(this->mesh_faces.cols());
 
             // LOOP OVER SURFACES
             for (UInteger isurface=0; isurface<this->geometry_surfaces.size(); ++isurface)
@@ -217,78 +234,85 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
                     auto x_surface = this->geometry_points_on_surfaces[isurface](surf_iter,0);
                     auto y_surface = this->geometry_points_on_surfaces[isurface](surf_iter,1);
                     auto z_surface = this->geometry_points_on_surfaces[isurface](surf_iter,2);
+                    // // CHECK IF THE POINT IS ON THE GEOMETRICAL SURFACE
+                    // if (std::abs(x_surface-x1) < projection_precision && \
+                    //         std::abs(y_surface-y1) < projection_precision && \
+                    //         std::abs(z_surface-z1) < projection_precision )
+                    // {
+                    //     // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
+                    //     x1 = x_surface;
+                    //     y1 = y_surface;
+                    //     z1 = z_surface;
+                    //     break;
+                    // }
+                    // else if (std::abs(x_surface-x2) < projection_precision && \
+                    //         std::abs(y_surface-y2) < projection_precision && \
+                    //         std::abs(z_surface-z2) < projection_precision )
+                    // {
+                    //     // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
+                    //     x2 = x_surface;
+                    //     y2 = y_surface;
+                    //     z2 = z_surface;
+                    //     break;
+                    // }
+                    // else if (std::abs(x_surface-x3) < projection_precision && \
+                    //         std::abs(y_surface-y3) < projection_precision && \
+                    //         std::abs(z_surface-z3) < projection_precision )
+                    // {
+                    //     // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
+                    //     x3 = x_surface;
+                    //     y3 = y_surface;
+                    //     z3 = z_surface;
+                    //     break;
+                    // }
                     // CHECK IF THE POINT IS ON THE GEOMETRICAL SURFACE
-                    if (std::abs(x_surface-x1) < projection_precision && \
-                            std::abs(y_surface-y1) < projection_precision && \
-                            std::abs(z_surface-z1) < projection_precision )
-                    {
-                        // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
-                        x1 = x_surface;
-                        y1 = y_surface;
-                        z1 = z_surface;
-                        break;
-                    }
-                    else if (std::abs(x_surface-x2) < projection_precision && \
-                            std::abs(y_surface-y2) < projection_precision && \
-                            std::abs(z_surface-z2) < projection_precision )
-                    {
-                        // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
-                        x2 = x_surface;
-                        y2 = y_surface;
-                        z2 = z_surface;
-                        break;
-                    }
-                    else if (std::abs(x_surface-x3) < projection_precision && \
-                            std::abs(y_surface-y3) < projection_precision && \
-                            std::abs(z_surface-z3) < projection_precision )
-                    {
-                        // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
-                        x3 = x_surface;
-                        y3 = y_surface;
-                        z3 = z_surface;
-                        break;
+                    for (auto ivertex = 0; ivertex<this->mesh_faces.cols(); ++ivertex) {
+                        if (std::abs(x_surface-face_vertices(ivertex,0)) < projection_precision && \
+                                std::abs(y_surface-face_vertices(ivertex,1)) < projection_precision && \
+                                std::abs(z_surface-face_vertices(ivertex,2)) < projection_precision )
+                        {
+                            // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
+                            face_vertices(ivertex,1) = x_surface;
+                            face_vertices(ivertex,1) = y_surface;
+                            face_vertices(ivertex,2) = z_surface;
+                            break;
+                        }
                     }
                 }
 
 
                 // VERTEX POINTS
-                gp_Pnt vertex_1(x1,y1,z1);
-                gp_Pnt vertex_2(x2,y2,z2);
-                gp_Pnt vertex_3(x3,y3,z3);
+                // gp_Pnt vertex_1(x1,y1,z1);
+                // gp_Pnt vertex_2(x2,y2,z2);
+                // gp_Pnt vertex_3(x3,y3,z3);
+
+                std::vector<gp_Pnt> face_gp_vertices(this->mesh_faces.cols());
+                for (auto ivertex = 0; ivertex<this->mesh_faces.cols(); ++ivertex) {
+                    face_gp_vertices[ivertex] = gp_Pnt(face_vertices(ivertex,0),face_vertices(ivertex,1),face_vertices(ivertex,2));
+                }
 
                 BRepAdaptor_Surface adapt_surface(this->topo_faces[isurface]);
 
                 try
                 {
-                    Extrema_ExtPS extrema_1(vertex_1,adapt_surface,this->projection_precision,
-                                            this->projection_precision,Extrema_ExtFlag_MIN);
-                    Extrema_ExtPS extrema_2(vertex_2,adapt_surface,this->projection_precision,
-                                            this->projection_precision,Extrema_ExtFlag_MIN);
-                    Extrema_ExtPS extrema_3(vertex_3,adapt_surface,this->projection_precision,
+                    // Extrema_ExtPS extrema_1(vertex_1,adapt_surface,this->projection_precision,
+                    //                         this->projection_precision,Extrema_ExtFlag_MIN);
+                    // Extrema_ExtPS extrema_2(vertex_2,adapt_surface,this->projection_precision,
+                    //                         this->projection_precision,Extrema_ExtFlag_MIN);
+                    // Extrema_ExtPS extrema_3(vertex_3,adapt_surface,this->projection_precision,
+                    //                         this->projection_precision,Extrema_ExtFlag_MIN);
+                    std::vector<Extrema_ExtPS> extrema(this->mesh_faces.cols());
+                    for (auto ivertex = 0; ivertex<this->mesh_faces.cols(); ++ivertex) {
+                        extrema[ivertex] = Extrema_ExtPS(face_gp_vertices[ivertex],adapt_surface,this->projection_precision,
                                             this->projection_precision,Extrema_ExtFlag_MIN);
 
-                    for (auto extrema_iter=1; extrema_iter<=extrema_1.NbExt(); ++extrema_iter)
-                    {
-                        auto point_1_distance = extrema_1.SquareDistance(extrema_iter);
-                        if (point_1_distance/this->scale < this->projection_precision)
+                        for (auto extrema_iter=1; extrema_iter<=extrema[ivertex].NbExt(); ++extrema_iter)
                         {
-                            mins_1.push_back(isurface);
-                        }
-                    }
-                    for (auto extrema_iter=1; extrema_iter<=extrema_2.NbExt(); ++extrema_iter)
-                    {
-                        auto point_2_distance = extrema_2.SquareDistance(extrema_iter);
-                        if (point_2_distance/this->scale < this->projection_precision)
-                        {
-                            mins_2.push_back(isurface);
-                        }
-                    }
-                    for (auto extrema_iter=1; extrema_iter<=extrema_3.NbExt(); ++extrema_iter)
-                    {
-                        auto point_3_distance = extrema_3.SquareDistance(extrema_iter);
-                        if (point_3_distance/this->scale < this->projection_precision)
-                        {
-                            mins_3.push_back(isurface);
+                            auto point_distance = extrema[ivertex].SquareDistance(extrema_iter);
+                            if (point_distance/this->scale < this->projection_precision)
+                            {
+                                mins[ivertex].push_back(isurface);
+                            }
                         }
                     }
                 }
@@ -299,10 +323,14 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
             }
 
             // FIND IF ALL THREE NODES OF THE MESH CAN BE ON ONE SURFACE
-            auto surface_to_project_to = cnp::intersect(mins_1,mins_2,mins_3);
+            // auto surface_to_project_to = cnp::intersect(mins_1,mins_2,mins_3);
+            auto surface_to_project_to = mins[0];
+            for (auto ivertex = 1; ivertex<this->mesh_faces.cols(); ++ivertex) {
+                surface_to_project_to = cnp::intersect(surface_to_project_to,mins[ivertex]);
+            }
             if (surface_to_project_to.size() == 1)
             {
-                this->dirichlet_faces(index_face,3) = surface_to_project_to[0];
+                this->dirichlet_faces(index_face,this->mesh_faces.cols()-1) = surface_to_project_to[0];
             }
             else if (surface_to_project_to.size() > 1)
             {
