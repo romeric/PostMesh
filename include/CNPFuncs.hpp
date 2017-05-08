@@ -360,12 +360,13 @@ unique(const std::vector<T> &v, bool return_index=false)
 }
 
 template<typename T>
-STATIC ALWAYS_INLINE T itemfreq(const Eigen::PlainObjectBase<T> &arr)
+STATIC ALWAYS_INLINE Eigen::Matrix<typename Eigen::PlainObjectBase<T>::Scalar,DYNAMIC,DYNAMIC>
+itemfreq(const Eigen::PlainObjectBase<T> &arr)
 {
     //! FINDS THE NUMBER OF OCCURENCE OF EACH VALUE IN AN EIGEN MATRIX
     std::vector<typename Eigen::PlainObjectBase<T>::Scalar> uniques;
     std::tie(uniques,std::ignore) = unique(arr);
-    T freqs;
+    Eigen::Matrix<typename Eigen::PlainObjectBase<T>::Scalar,DYNAMIC,DYNAMIC> freqs;
     freqs.setZero(uniques.size(),2);
 
     auto counter = 0;
