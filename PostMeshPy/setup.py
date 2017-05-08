@@ -24,9 +24,9 @@ for key, value in cfg_vars.items():
 no_deprecated = ("NPY_NO_DEPRECATED_API",None)
 
 sourcefiles = ["PostMeshPy.pyx",
-                _pwd_+"/src/PostMeshBase.cpp",
-                _pwd_+"/src/PostMeshCurve.cpp",
-                _pwd_+"/src/PostMeshSurface.cpp"]
+                "../src/PostMeshBase.cpp",
+                "../src/PostMeshCurve.cpp",
+                "../src/PostMeshSurface.cpp"]
 
 
 
@@ -60,15 +60,18 @@ for i in all_dir_libs:
         elif "linux" in _os:
             occ_libs.append(":"+i)
 
+eigen_include_path = "/usr/local/include/eigen/"
+oce_include_path = "/usr/local/include/oce/"
+
 # Create extension module
 extensions = [
     Extension(
         name = "PostMeshPy",  
         sources = sourcefiles,
         language="c++",
-        include_dirs = [_pwd_,_pwd_+"/include/",
-                        "/usr/local/include/eigen/",
-                        "/usr/local/include/oce/",
+        include_dirs = [_pwd_,"../include/",
+                        eigen_include_path,
+                        oce_include_path,
                         numpy.get_include()],
         libraries= ["stdc++"] + occ_libs, 
         library_dirs = [_pwd_,"/usr/local/lib/"],
