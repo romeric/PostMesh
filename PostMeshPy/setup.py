@@ -13,6 +13,7 @@ _os = sys.platform
 
 # Get the current directory
 _pwd_ = os.path.dirname(os.path.realpath('__file__'))
+_upwd_ = os.path.dirname(_pwd_)
 
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 cfg_vars = get_config_vars()
@@ -24,9 +25,9 @@ for key, value in cfg_vars.items():
 no_deprecated = ("NPY_NO_DEPRECATED_API",None)
 
 sourcefiles = ["PostMeshPy.pyx",
-                "../src/PostMeshBase.cpp",
-                "../src/PostMeshCurve.cpp",
-                "../src/PostMeshSurface.cpp"]
+                _upwd_+"/src/PostMeshBase.cpp",
+                _upwd_+"/src/PostMeshCurve.cpp",
+                _upwd_+"/src/PostMeshSurface.cpp"]
 
 
 
@@ -69,7 +70,8 @@ extensions = [
         name = "PostMeshPy",  
         sources = sourcefiles,
         language="c++",
-        include_dirs = [_pwd_,"../include/",
+        include_dirs = [_pwd_,
+                        _upwd_+"/include/",
                         eigen_include_path,
                         oce_include_path,
                         numpy.get_include()],
@@ -83,7 +85,7 @@ extensions = [
 setup(
     ext_modules = cythonize(extensions),
     name = "PostMeshPy",
-    version = "1.3",
+    version = "1.4",
     description = "A Python wrapper for PostMesh - a high order curvilinear mesh generator based on OpenCascade",
     author="Roman Poya",
     author_email = "r.poya@swansea.ac.uk",

@@ -197,7 +197,7 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
             // A LIST OF PROJECTION FACES
             this->listfaces.push_back(iface);
             // FILL DIRICHLET DATA
-            for (UInteger iter=0;iter<no_face_vertices;++iter)
+            for (auto iter=0;iter<no_face_vertices;++iter)
             {
                this->dirichlet_faces(index_face,iter) = this->mesh_faces(iface,iter);
             }
@@ -205,7 +205,7 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
             // GET THE COORDINATES OF THE FACE VERTICES
             Eigen::MatrixR face_vertices(no_face_vertices,ndim);
             for (auto i=0; i<no_face_vertices; ++i) {
-                for (auto j=0; j<ndim; ++j) {
+                for (UInteger j=0; j<ndim; ++j) {
                     face_vertices(i,j) = this->mesh_points(this->mesh_faces(iface,i),j);
                 }
             }
@@ -324,7 +324,7 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
             // GET THE COORDINATES OF THE FACE VERTICES
             Eigen::MatrixR face_vertices(no_face_vertices,ndim);
             for (auto i=0; i<no_face_vertices; ++i) {
-                for (auto j=0; j<ndim; ++j) {
+                for (UInteger j=0; j<ndim; ++j) {
                     face_vertices(i,j) = this->mesh_points(this->mesh_faces(this->listfaces[idir],i),j);
                 }
             }
@@ -537,7 +537,7 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
             // A LIST OF PROJECTION FACES
             this->listfaces.push_back(iface);
             // FILL DIRICHLET DATA
-            for (UInteger iter=0;iter<no_face_vertices;++iter)
+            for (auto iter=0;iter<no_face_vertices;++iter)
             {
                this->dirichlet_faces(index_face,iter) = this->mesh_faces(iface,iter);
             }
@@ -552,7 +552,7 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
             // GET THE COORDINATES OF THE FACE VERTICES
             Eigen::MatrixR face_vertices(no_face_vertices,ndim);
             for (auto i=0; i<no_face_vertices; ++i) {
-                for (auto j=0; j<ndim; ++j) {
+                for (UInteger j=0; j<ndim; ++j) {
                     face_vertices(i,j) = this->mesh_points(this->mesh_faces(iface,i),j);
                 }
             }
@@ -704,7 +704,7 @@ void PostMeshSurface::SupplySurfacesContainingFaces(const Integer *arr, Integer 
             // A LIST OF PROJECTION FACES
             this->listfaces.push_back(iface);
             // FILL DIRICHLET DATA
-            for (UInteger iter=0; iter<no_face_vertices; ++iter)
+            for (auto iter=0; iter<no_face_vertices; ++iter)
             {
                dirichlet_faces_ext(index_face,iter) = this->mesh_faces(iface,iter);
             }
@@ -876,7 +876,7 @@ void PostMeshSurface::ProjectMeshOnSurface()
     for (auto idir=0; idir<this->dirichlet_faces.rows(); ++idir)
     {
         // LOOP OVER THE THREE VERTICES OF THE FACE
-        for (UInteger inode=0; inode<no_face_vertices; ++inode)
+        for (Integer inode=0; inode<no_face_vertices; ++inode)
         {
             // PROJECTION PARAMETERS
             Real parameterU, parameterV;
