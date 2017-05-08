@@ -197,7 +197,7 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
             // A LIST OF PROJECTION FACES
             this->listfaces.push_back(iface);
             // FILL DIRICHLET DATA
-            for (UInteger iter=0;iter<ndim;++iter)
+            for (UInteger iter=0;iter<no_face_vertices;++iter)
             {
                this->dirichlet_faces(index_face,iter) = this->mesh_faces(iface,iter);
             }
@@ -365,7 +365,7 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
     for (auto idir=0; idir<this->dirichlet_faces.rows(); ++idir)
     {
         // MESH FACES THAT COULD NOT BE DETERMINED
-        if (this->dirichlet_faces(idir,no_face_vertices-1)==-1)
+        if (this->dirichlet_faces(idir,no_face_vertices)==-1)
         {
             // PROJECT IT OVER ALL SURFACES
             auto min_mid_distance = 1.0e20;
@@ -707,8 +707,9 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
 void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
 {
     //! IDENTIFY GEOMETRICAL SURFACES CONTAINING MESH FACES
-    this->dirichlet_faces = Eigen::MatrixI::Zero(this->mesh_faces.rows(),this->ndim+1);
-    this->projection_ID = Eigen::MatrixI::Zero(this->mesh_faces.rows(),4);
+    const Integer no_face_vertices = this->GetNoFaceVertices();
+    this->dirichlet_faces = Eigen::MatrixI::Zero(this->mesh_faces.rows(),no_face_vertices+1);
+    this->projection_ID = Eigen::MatrixI::Zero(this->mesh_faces.rows(),no_face_vertices+1);
     this->listfaces.clear();
 
     auto index_face = 0;
@@ -718,7 +719,8 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
     // IN 3D A MID-POINT IS NOT ENOUGH TO DECIDE WHICH MESH FACE IS ON WHICH SURFACE
     // HENCE WE PROJECT THE MIDDLE POINT OF EVERY EDGE, THE REASON BEING THAT IF TWO
     // EDGES OF A FACE IS ON A SURFACE THAN THE FACE IS ON THE SURFACE
-    gp_Pnt middle_point, edge_point_1, edge_point_2, edge_point_3;
+    // gp_Pnt middle_point, edge_point_1, edge_point_2, edge_point_3;
+    gp_Pnt middle_point;
 
     // LOOP OVER DIRCHLET FACES
     for (auto iface=0; iface<this->mesh_faces.rows(); ++iface)
@@ -729,7 +731,7 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
             // A LIST OF PROJECTION FACES
             this->listfaces.push_back(iface);
             // FILL DIRICHLET DATA
-            for (UInteger iter=0;iter<ndim;++iter)
+            for (UInteger iter=0;iter<no_face_vertices;++iter)
             {
                this->dirichlet_faces(index_face,iter) = this->mesh_faces(iface,iter);
             }
@@ -738,39 +740,59 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
             auto min_mid_distance = 1.0e20;
             auto mid_distance = 1.0e10;
 
-            auto min_edge_1_distance = 1.0e20;
-            auto edge_1_distance = 1.0e10;
+            // auto min_edge_1_distance = 1.0e20;
+            // auto edge_1_distance = 1.0e10;
 
-            auto min_edge_2_distance = 1.0e20;
-            auto edge_2_distance = 1.0e10;
+            // auto min_edge_2_distance = 1.0e20;
+            // auto edge_2_distance = 1.0e10;
 
-            auto min_edge_3_distance = 1.0e20;
-            auto edge_3_distance = 1.0e10;
+            // auto min_edge_3_distance = 1.0e20;
+            // auto edge_3_distance = 1.0e10;
+            std::vector<Real> min_edge_distances(no_face_vertices,1.0e20);
+            std::vector<Real> edge_distances(no_face_vertices,1.0e10);
 
             // GET THE COORDINATES OF THE FACE VERTICES (VERTICES OF TRIANGLE)
-            auto x1 = this->mesh_points(this->mesh_faces(iface,0),0);
-            auto y1 = this->mesh_points(this->mesh_faces(iface,0),1);
-            auto z1 = this->mesh_points(this->mesh_faces(iface,0),2);
+            // auto x1 = this->mesh_points(this->mesh_faces(iface,0),0);
+            // auto y1 = this->mesh_points(this->mesh_faces(iface,0),1);
+            // auto z1 = this->mesh_points(this->mesh_faces(iface,0),2);
 
-            auto x2 = this->mesh_points(this->mesh_faces(iface,1),0);
-            auto y2 = this->mesh_points(this->mesh_faces(iface,1),1);
-            auto z2 = this->mesh_points(this->mesh_faces(iface,1),2);
+            // auto x2 = this->mesh_points(this->mesh_faces(iface,1),0);
+            // auto y2 = this->mesh_points(this->mesh_faces(iface,1),1);
+            // auto z2 = this->mesh_points(this->mesh_faces(iface,1),2);
 
-            auto x3 = this->mesh_points(this->mesh_faces(iface,2),0);
-            auto y3 = this->mesh_points(this->mesh_faces(iface,2),1);
-            auto z3 = this->mesh_points(this->mesh_faces(iface,2),2);
+            // auto x3 = this->mesh_points(this->mesh_faces(iface,2),0);
+            // auto y3 = this->mesh_points(this->mesh_faces(iface,2),1);
+            // auto z3 = this->mesh_points(this->mesh_faces(iface,2),2);
+            Eigen::MatrixR face_vertices(no_face_vertices,ndim);
+            for (auto i=0; i<no_face_vertices; ++i) {
+                for (auto j=0; j<ndim; ++j) {
+                    face_vertices(i,j) = this->mesh_points(this->mesh_faces(iface,i),j);
+                }
+            }
 
             // GET THE MID-POINT OF THE FACE/TRIANGLE
-            auto x_avg = ( x1 + x2 + x3 )/3.;
-            auto y_avg = ( y1 + y2 + y3 )/3.;
-            auto z_avg = ( z1 + z2 + z3 )/3.;
+            // auto x_avg = ( x1 + x2 + x3 )/3.;
+            // auto y_avg = ( y1 + y2 + y3 )/3.;
+            // auto z_avg = ( z1 + z2 + z3 )/3.;
+            Eigen::RowVectorR coord_avg = face_vertices.colwise().sum().array()/no_face_vertices;
 
             // UPDATE POINTS
-            middle_point.SetX(x_avg); middle_point.SetY(y_avg); middle_point.SetZ(z_avg);
+            // middle_point.SetX(x_avg); middle_point.SetY(y_avg); middle_point.SetZ(z_avg);
+            middle_point.SetX(coord_avg[0]); middle_point.SetY(coord_avg[1]); middle_point.SetZ(coord_avg[2]);
 
-            edge_point_1.SetX((x1+x2)/2.); edge_point_1.SetY((y1+y2)/2.); edge_point_1.SetZ((z1+z2)/2.);
-            edge_point_2.SetX((x1+x3)/2.); edge_point_2.SetY((y1+y3)/2.); edge_point_2.SetZ((z1+z3)/2.);
-            edge_point_3.SetX((x2+x3)/2.); edge_point_3.SetY((y2+y3)/2.); edge_point_3.SetZ((z2+z3)/2.);
+            // edge_point_1.SetX((x1+x2)/2.); edge_point_1.SetY((y1+y2)/2.); edge_point_1.SetZ((z1+z2)/2.);
+            // edge_point_2.SetX((x1+x3)/2.); edge_point_2.SetY((y1+y3)/2.); edge_point_2.SetZ((z1+z3)/2.);
+            // edge_point_3.SetX((x2+x3)/2.); edge_point_3.SetY((y2+y3)/2.); edge_point_3.SetZ((z2+z3)/2.);
+
+            std::vector<gp_Pnt> edge_mid_points(no_face_vertices);
+            edge_mid_points[no_face_vertices-1] = gp_Pnt(   (face_vertices(0,0) + face_vertices(no_face_vertices-1,0))/2.,
+                                                            (face_vertices(0,1) + face_vertices(no_face_vertices-1,1))/2.,
+                                                            (face_vertices(0,2) + face_vertices(no_face_vertices-1,2))/2.);
+            for (auto ivertex = 0; ivertex<no_face_vertices-1; ++ivertex) {
+                edge_mid_points[ivertex] = gp_Pnt(   (face_vertices(ivertex,0) + face_vertices(ivertex+1,0))/2.,
+                                                     (face_vertices(ivertex,1) + face_vertices(ivertex+1,1))/2.,
+                                                     (face_vertices(ivertex,2) + face_vertices(ivertex+1,2))/2.);
+            }
 
             // LOOP OVER SURFACES
             for (UInteger isurface=0; isurface<this->geometry_surfaces.size(); ++isurface)
@@ -781,14 +803,18 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
                     proj.Init(middle_point,this->geometry_surfaces[isurface]);
                     mid_distance = proj.LowerDistance();
 
-                    proj.Init(edge_point_1,this->geometry_surfaces[isurface]);
-                    edge_1_distance = proj.LowerDistance();
+                    // proj.Init(edge_point_1,this->geometry_surfaces[isurface]);
+                    // edge_1_distance = proj.LowerDistance();
 
-                    proj.Init(edge_point_2,this->geometry_surfaces[isurface]);
-                    edge_2_distance = proj.LowerDistance();
+                    // proj.Init(edge_point_2,this->geometry_surfaces[isurface]);
+                    // edge_2_distance = proj.LowerDistance();
 
-                    proj.Init(edge_point_3,this->geometry_surfaces[isurface]);
-                    edge_3_distance = proj.LowerDistance();
+                    // proj.Init(edge_point_3,this->geometry_surfaces[isurface]);
+                    // edge_3_distance = proj.LowerDistance();
+                    for (auto ivertex=0; ivertex<no_face_vertices; ++ivertex) {
+                        proj.Init(edge_mid_points[ivertex],this->geometry_surfaces[isurface]);
+                        edge_distances[ivertex] = proj.LowerDistance();
+                    }
                 }
                 catch (StdFail_NotDone)
                 {
@@ -802,26 +828,35 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
                     min_mid_distance = mid_distance;
                 }
 
-                if (edge_1_distance < min_edge_1_distance)
-                {
-                    // STORE ID OF SURFACES
-                    this->projection_ID(index_face,1) = isurface;
-                    // RE-ASSIGN
-                    min_edge_1_distance = edge_1_distance;
-                }
-                if (edge_2_distance < min_edge_2_distance)
-                {
-                    // STORE ID OF SURFACES
-                    this->projection_ID(index_face,2) = isurface;
-                    // RE-ASSIGN
-                    min_edge_2_distance = edge_2_distance;
-                }
-                if (edge_3_distance < min_edge_3_distance)
-                {
-                    // STORE ID OF SURFACES
-                    this->projection_ID(index_face,3) = isurface;
-                    // RE-ASSIGN
-                    min_edge_3_distance = edge_3_distance;
+                // if (edge_1_distance < min_edge_1_distance)
+                // {
+                //     // STORE ID OF SURFACES
+                //     this->projection_ID(index_face,1) = isurface;
+                //     // RE-ASSIGN
+                //     min_edge_1_distance = edge_1_distance;
+                // }
+                // if (edge_2_distance < min_edge_2_distance)
+                // {
+                //     // STORE ID OF SURFACES
+                //     this->projection_ID(index_face,2) = isurface;
+                //     // RE-ASSIGN
+                //     min_edge_2_distance = edge_2_distance;
+                // }
+                // if (edge_3_distance < min_edge_3_distance)
+                // {
+                //     // STORE ID OF SURFACES
+                //     this->projection_ID(index_face,3) = isurface;
+                //     // RE-ASSIGN
+                //     min_edge_3_distance = edge_3_distance;
+                // }
+                for (auto ivertex=0; ivertex<no_face_vertices; ++ivertex) {
+                    if (edge_distances[ivertex] < min_edge_distances[ivertex])
+                    {
+                        // STORE ID OF SURFACES
+                        this->projection_ID(index_face,ivertex+1) = isurface;
+                        // RE-ASSIGN
+                        min_edge_distances[ivertex] = edge_distances[ivertex];
+                    }  
                 }
             }
             index_face +=1;
@@ -830,44 +865,69 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
 
     // REDUCE THE MATRIX TO GET DIRICHLET FACES
     auto arr_rows = cnp::arange(static_cast<Integer>(index_face));
-    auto arr_cols = cnp::arange(static_cast<Integer>(ndim)+1);
+    auto arr_cols = cnp::arange(no_face_vertices+1);
     this->dirichlet_faces = cnp::take(this->dirichlet_faces,arr_rows,arr_cols);
-    arr_cols = cnp::arange(static_cast<Integer>(4));
+    arr_cols = cnp::arange(no_face_vertices+1);
     this->projection_ID = cnp::take(this->projection_ID,arr_rows,arr_cols);
 
     // BASED ON FOUR PROJECTIONS DECIDE WHICH FACE IS ON WHICH SURFACE
-    for (auto i=0; i<this->dirichlet_faces.rows(); ++i)
-    {
-        if (this->projection_ID(i,0)==this->projection_ID(i,1) &&
-                this->projection_ID(i,1)==this->projection_ID(i,2) &&
-                this->projection_ID(i,2)==this->projection_ID(i,3) )
+    if (this->mesh_element_type == "tet") {
+        for (auto i=0; i<this->dirichlet_faces.rows(); ++i)
         {
-            this->dirichlet_faces(i,3) = this->projection_ID(i,0);
+            if (this->projection_ID(i,0)==this->projection_ID(i,1) &&
+                    this->projection_ID(i,1)==this->projection_ID(i,2) &&
+                    this->projection_ID(i,2)==this->projection_ID(i,3) )
+            {
+                this->dirichlet_faces(i,3) = this->projection_ID(i,0);
+            }
+            else if (this->projection_ID(i,1)==this->projection_ID(i,2) &&
+                     this->projection_ID(i,2)==this->projection_ID(i,3))
+            {
+                this->dirichlet_faces(i,3) = this->projection_ID(i,1);
+            }
+            else if (this->projection_ID(i,1)==this->projection_ID(i,2) &&
+                     this->projection_ID(i,1)!=this->projection_ID(i,3))
+            {
+                this->dirichlet_faces(i,3) = this->projection_ID(i,1);
+            }
+            else if (this->projection_ID(i,1)==this->projection_ID(i,3) &&
+                     this->projection_ID(i,1)!=this->projection_ID(i,2))
+            {
+                this->dirichlet_faces(i,3) = this->projection_ID(i,1);
+            }
+            else if (this->projection_ID(i,2)==this->projection_ID(i,3) &&
+                     this->projection_ID(i,2)!=this->projection_ID(i,1))
+            {
+                this->dirichlet_faces(i,3) = this->projection_ID(i,2);
+            }
+            else
+            {
+                this->dirichlet_faces(i,3) = this->projection_ID(i,0);
+            }
         }
-        else if (this->projection_ID(i,1)==this->projection_ID(i,2) &&
-                 this->projection_ID(i,2)==this->projection_ID(i,3))
+    }
+    else if (this->mesh_element_type == "hex") {
+        for (auto i=0; i<this->dirichlet_faces.rows(); ++i)
         {
-            this->dirichlet_faces(i,3) = this->projection_ID(i,1);
-        }
-        else if (this->projection_ID(i,1)==this->projection_ID(i,2) &&
-                 this->projection_ID(i,1)!=this->projection_ID(i,3))
-        {
-            this->dirichlet_faces(i,3) = this->projection_ID(i,1);
-        }
-        else if (this->projection_ID(i,1)==this->projection_ID(i,3) &&
-                 this->projection_ID(i,1)!=this->projection_ID(i,2))
-        {
-            this->dirichlet_faces(i,3) = this->projection_ID(i,1);
-        }
-        else if (this->projection_ID(i,2)==this->projection_ID(i,3) &&
-                 this->projection_ID(i,2)!=this->projection_ID(i,1))
-        {
-            this->dirichlet_faces(i,3) = this->projection_ID(i,2);
-        }
-        else
-        {
-            this->dirichlet_faces(i,3) = this->projection_ID(i,0);
-        }
+            if (    this->projection_ID(i,0)==this->projection_ID(i,1) &&
+                    this->projection_ID(i,1)==this->projection_ID(i,2) &&
+                    this->projection_ID(i,2)==this->projection_ID(i,3) &&
+                    this->projection_ID(i,3)==this->projection_ID(i,4))
+            {
+                this->dirichlet_faces(i,no_face_vertices) = this->projection_ID(i,0);
+            }
+            else if (this->projection_ID(i,0)!=this->projection_ID(i,1) &&
+                     this->projection_ID(i,1)==this->projection_ID(i,2) &&
+                     this->projection_ID(i,2)==this->projection_ID(i,3) &&
+                     this->projection_ID(i,3)==this->projection_ID(i,4))
+            {
+                this->dirichlet_faces(i,no_face_vertices) = this->projection_ID(i,1);
+            }
+            else
+            {
+                this->dirichlet_faces(i,no_face_vertices) = this->projection_ID(i,0);
+            }
+        }  
     }
 }
 
@@ -881,7 +941,8 @@ void PostMeshSurface::SupplySurfacesContainingFaces(const Integer *arr, Integer 
     //! POSSIBLE THAT THE SURFACE NUMBERING OF EXTERNALLY PROVIDED SOFTWARE AND OPENCASCADE
     //! ARE DIFFERENT. FOR SUCH CASES SUPPLY ALREADY_MAPPED FLAG AS ZERO
 
-    Eigen::MatrixI dirichlet_faces_ext = Eigen::MatrixI::Ones(rows,this->ndim+1)*(-1);
+    const Integer no_face_vertices = this->GetNoFaceVertices();
+    Eigen::MatrixI dirichlet_faces_ext = Eigen::MatrixI::Constant(rows,no_face_vertices+1,-1);
     this->listfaces.clear();
     auto index_face = 0;
     // LOOP OVER FACES
@@ -893,13 +954,13 @@ void PostMeshSurface::SupplySurfacesContainingFaces(const Integer *arr, Integer 
             // A LIST OF PROJECTION FACES
             this->listfaces.push_back(iface);
             // FILL DIRICHLET DATA
-            for (UInteger iter=0; iter<this->ndim; ++iter)
+            for (UInteger iter=0; iter<no_face_vertices; ++iter)
             {
                dirichlet_faces_ext(index_face,iter) = this->mesh_faces(iface,iter);
             }
             if (already_mapped == 1)
             {
-                dirichlet_faces_ext(index_face,3) = arr[iface];
+                dirichlet_faces_ext(index_face,no_face_vertices) = arr[iface];
             }
             index_face++;
         }
@@ -911,7 +972,7 @@ void PostMeshSurface::SupplySurfacesContainingFaces(const Integer *arr, Integer 
         // NUMBERING IS THE SAME AS OPENCASCADE'S
         // REDUCE THE MATRIX TO GET DIRICHLET FACES
         auto arr_rows = cnp::arange(static_cast<Integer>(index_face));
-        auto arr_cols = cnp::arange(static_cast<Integer>(ndim)+1);
+        auto arr_cols = cnp::arange(no_face_vertices+1);
         this->dirichlet_faces = cnp::take(dirichlet_faces_ext,arr_rows,arr_cols);
         return;
     }
@@ -937,7 +998,7 @@ void PostMeshSurface::SupplySurfacesContainingFaces(const Integer *arr, Integer 
     {
         Eigen::MatrixUI urows;
         std::tie(urows,std::ignore) = cnp::where_eq(surface_flags_ext,k);
-        Eigen::MatrixUI col(1,1); col(0,0) = 3;
+        Eigen::MatrixUI col(1,1); col(0,0) = no_face_vertices;
 
         //! FIND THE ROWS OF INTERNAL BASED ON EXTRENAL. GET ITEMFREQ OF THESE ROWS
         //! GET THE MAXIMUM OCCURENCE FROM ITEMFREQ AND CHANGE THE REMAINING
@@ -974,27 +1035,47 @@ void PostMeshSurface::IdentifySurfacesIntersections()
     //! WITH EACH OF THOSE FACES BEING PROJECTED ON TO DIFFERENT SURFACES
 
     // BUILD EDGES FIRST
-    Eigen::MatrixI edges(this->dirichlet_faces.rows()*3,3);
+    const Integer no_face_vertices = this->GetNoFaceVertices();
+    Eigen::MatrixI edges(this->dirichlet_faces.rows()*no_face_vertices,3);
     for (auto i=0; i < this->dirichlet_faces.rows(); ++i)
     {
-        edges(i,0) = this->dirichlet_faces(i,0);
-        edges(i,1) = this->dirichlet_faces(i,1);
-        edges(i,2) = this->dirichlet_faces(i,3);
+        if (this->mesh_element_type == "tet") {
+            edges(i,0) = this->dirichlet_faces(i,0);
+            edges(i,1) = this->dirichlet_faces(i,1);
+            edges(i,2) = this->dirichlet_faces(i,no_face_vertices);
 
-        edges(i+this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,0);
-        edges(i+this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
-        edges(i+this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,3);
+            edges(i+this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,0);
+            edges(i+this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
+            edges(i+this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
 
-        edges(i+2*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,1);
-        edges(i+2*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
-        edges(i+2*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,3);
+            edges(i+2*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,1);
+            edges(i+2*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
+            edges(i+2*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
+        }
+        else if (this->mesh_element_type == "hex") {
+            edges(i,0) = this->dirichlet_faces(i,0);
+            edges(i,1) = this->dirichlet_faces(i,1);
+            edges(i,2) = this->dirichlet_faces(i,no_face_vertices);
+
+            edges(i+this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,1);
+            edges(i+this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
+            edges(i+this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
+
+            edges(i+2*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,2);
+            edges(i+2*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,3);
+            edges(i+2*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
+
+            edges(i+3*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,3);
+            edges(i+3*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,0);
+            edges(i+3*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
+        }
     }
 
     Eigen::MatrixI edges_only = edges.block(0,0,edges.rows(),2);
     cnp::sort_rows(edges_only);
     edges.block(0,0,edges.rows(),2) = edges_only;
 
-    Eigen::MatrixI faces_with_curve_projection_edges(3*this->dirichlet_faces.rows(),2);
+    Eigen::MatrixI faces_with_curve_projection_edges(no_face_vertices*this->dirichlet_faces.rows(),2);
     auto counter = 0;
     for (auto i=0; i<edges.rows();++i)
     {
@@ -1036,6 +1117,7 @@ void PostMeshSurface::IdentifySurfacesIntersections()
 void PostMeshSurface::ProjectMeshOnSurface()
 {
     // CONVENIENCE FUNCTION FOR SIMILARITY WITH 2D (USEFUL FOR REPAIRING DUAL IMAGES)
+    const Integer no_face_vertices = this->GetNoFaceVertices();
     this->InferInterpolationPolynomialDegree();
     this->projection_U = Eigen::MatrixR::Zero(this->dirichlet_faces.rows(),this->ndim);
     this->projection_V = Eigen::MatrixR::Zero(this->dirichlet_faces.rows(),this->ndim);
@@ -1044,7 +1126,7 @@ void PostMeshSurface::ProjectMeshOnSurface()
     for (auto idir=0; idir<this->dirichlet_faces.rows(); ++idir)
     {
         // LOOP OVER THE THREE VERTICES OF THE FACE
-        for (UInteger inode=0; inode<this->ndim; ++inode)
+        for (UInteger inode=0; inode<no_face_vertices; ++inode)
         {
             // PROJECTION PARAMETERS
             Real parameterU, parameterV;
@@ -1054,7 +1136,7 @@ void PostMeshSurface::ProjectMeshOnSurface()
             auto z = this->mesh_points(this->mesh_faces(this->listfaces[idir],inode),2);
 
             // GET THE SURFACE THAT THIS FACE HAS TO BE PROJECTED TO
-            auto isurface = this->dirichlet_faces(idir,3);
+            auto isurface = this->dirichlet_faces(idir,no_face_vertices);
             Handle_Geom_Surface current_surface = this->geometry_surfaces[isurface];
             // GET THE COORDINATES OF SURFACE'S THREE VERTICES
             Real x_surface, y_surface, z_surface;
@@ -1107,6 +1189,7 @@ void PostMeshSurface::ProjectMeshOnSurface()
 void PostMeshSurface::RepairDualProjectedParameters()
 {
     // SORT PROJECTED PARAMETERS OF EACH EDGE - MUST INITIALISE SORT INDICES
+    const Integer no_face_vertices = this->GetNoFaceVertices();
     this->sorted_projected_indicesU.setZero(this->projection_U.rows(),this->projection_U.cols());
     this->sorted_projected_indicesV.setZero(this->projection_V.rows(),this->projection_V.cols());
 
@@ -1117,7 +1200,7 @@ void PostMeshSurface::RepairDualProjectedParameters()
     auto tol = 1.0e-6;
     for (auto idir=0; idir < this->dirichlet_faces.rows(); ++idir)
     {
-        auto id_surface = static_cast<Integer>(this->dirichlet_faces(idir,3));
+        auto id_surface = static_cast<Integer>(this->dirichlet_faces(idir,no_face_vertices));
         Handle_Geom_Surface current_surface = this->geometry_surfaces[id_surface];
 
         if (current_surface->IsUClosed())
@@ -1221,6 +1304,7 @@ void PostMeshSurface::MeshPointInversionCurve(const gp_Pnt &point_in, gp_Pnt &po
 
 void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integer modify_linear_mesh)
 {
+    const Integer no_face_vertices = this->GetNoFaceVertices();
     this->no_dir_faces = this->dirichlet_faces.rows();
     auto no_face_nodes = this->mesh_faces.cols();
     Eigen::MatrixI arr_row = Eigen::Map<Eigen::Matrix<Integer,Eigen::Dynamic,1> >
@@ -1245,7 +1329,7 @@ void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integ
 
     for (auto idir=0; idir< this->no_dir_faces; ++idir)
     {
-        auto id_surface = static_cast<Integer>(this->dirichlet_faces(idir,3));
+        Integer id_surface = this->dirichlet_faces(idir,no_face_vertices);
         Handle_Geom_Surface current_surface = this->geometry_surfaces[id_surface];
 
         for (auto j=starter; j<no_face_nodes;++j)
@@ -1296,7 +1380,7 @@ void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integ
                 }
             }
 
-            if (j<static_cast<decltype(j)>(this->ndim))
+            if (j<no_face_vertices)
             {
                 // FOR VERTEX NODES KEEP THE DISPLACEMENT ZERO
                 this->displacements_BC(this->index_nodes(j),0) = 0.;
@@ -1322,6 +1406,9 @@ void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integ
 void PostMeshSurface::MeshPointInversionSurfaceArcLength(Integer project_on_curves, 
     Real OrthTol, Real *FEbases, Integer rows, Integer cols)
 {
+    if (this->mesh_element_type != "tet") {
+        warn("Arc-length based projection is only implemented for tetrahedral elements at the moment");
+    }
     if (project_on_curves==1)
     {
         warn("Projection on curves is not implemented in the 3D arc-length based projection. This will be ignored");
@@ -1434,14 +1521,15 @@ std::vector<Boolean> PostMeshSurface::FindPlanarSurfaces()
 
 std::vector<std::vector<Integer> > PostMeshSurface::GetMeshFacesOnPlanarSurfaces()
 {
+    const Integer no_face_vertices = this->GetNoFaceVertices();
     std::vector<Boolean> isplanar = this->FindPlanarSurfaces();
     std::vector<std::vector<Integer> > planar_faces(2);
     for (auto idir=0; idir< this->dirichlet_faces.rows(); ++idir)
     {
-        if (isplanar[this->dirichlet_faces(idir,3)] == True)
+        if (isplanar[this->dirichlet_faces(idir,no_face_vertices)] == True)
         {
             planar_faces[0].push_back(this->listfaces[idir]);
-            planar_faces[1].push_back(this->dirichlet_faces(idir,3));
+            planar_faces[1].push_back(this->dirichlet_faces(idir,no_face_vertices));
         }
     }
     return planar_faces;
@@ -1449,26 +1537,58 @@ std::vector<std::vector<Integer> > PostMeshSurface::GetMeshFacesOnPlanarSurfaces
 
 void PostMeshSurface::GetBoundaryPointsOrder()
 {
-    std::vector<Integer> edge0, edge1, edge2;
     this->InferInterpolationPolynomialDegree();
     auto C = this->degree - 1;
-    for (UInteger i=0; i<C; ++i)
-    {
-        edge0.push_back(i+3);
-        edge1.push_back(C+3 +i*(C+1) -i*(i-1)/2 );
-        edge2.push_back(2*C+3 +i*C -i*(i-1)/2 );
+
+    if (this->mesh_element_type == "tet") {
+
+        std::vector<Integer> edge0, edge1, edge2;
+        for (UInteger i=0; i<C; ++i)
+        {
+            edge0.push_back(i+3);
+            edge1.push_back(C+3 +i*(C+1) -i*(i-1)/2 );
+            edge2.push_back(2*C+3 +i*C -i*(i-1)/2 );
+        }
+        edge0.insert(edge0.begin(),0);
+        edge0.push_back(1);
+
+        edge1.insert(edge1.begin(),0);
+        edge1.push_back(2);
+
+        edge2.insert(edge2.begin(),1);
+        edge2.push_back(2);
+
+        std::vector<std::vector<Integer>> edges_order{edge0,edge1,edge2};
+        this->boundary_faces_order = cnp::toEigen(edges_order);
     }
-    edge0.insert(edge0.begin(),0);
-    edge0.push_back(1);
+    else if (this->mesh_element_type == "hex") {
 
-    edge1.insert(edge1.begin(),0);
-    edge1.push_back(2);
+        std::vector<Integer> edge0, edge1, edge2, edge3;
+        for (UInteger i=0; i<C; ++i)
+        {
+            edge0.push_back(i+4);
+            edge1.push_back(2*C+5 + i*(C+2));
+            edge2.push_back((C+2)*(C+2) - C + i);
+            edge3.push_back(C + 4 + i*(C+2));
+        }
+        
+        edge0.insert(edge0.begin(),0);
+        edge0.push_back(1);
 
-    edge2.insert(edge2.begin(),1);
-    edge2.push_back(2);
+        edge1.insert(edge1.begin(),1);
+        edge1.push_back(2);
 
-    std::vector<std::vector<Integer>> edges_order{edge0,edge1,edge2};
-    this->boundary_faces_order = cnp::toEigen(edges_order);
+        std::reverse(edge2.begin(),edge2.end());
+        edge2.insert(edge2.begin(),2);
+        edge2.push_back(3);
+
+        std::reverse(edge3.begin(),edge3.end());
+        edge3.insert(edge3.begin(),3);
+        edge3.push_back(0);
+
+        std::vector<std::vector<Integer>> edges_order{edge0,edge1,edge2,edge3};
+        this->boundary_faces_order = cnp::toEigen(edges_order);
+    }
 }
 
 std::vector<Integer> PostMeshSurface::GetDirichletFaces()

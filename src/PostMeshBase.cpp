@@ -536,39 +536,53 @@ void PostMeshBase::ComputeProjectionCriteria()
     if (this->projection_criteria.rows()==0)
     {
         this->projection_criteria.setZero(mesh_edges.rows(),mesh_edges.cols());
-        for (Integer iedge=0; iedge<mesh_edges.rows(); iedge++)
+        if (ndim==2) 
         {
-            // GET THE COORDINATES OF THE TWO END NODES
-            auto x1 = this->mesh_points(this->mesh_edges(iedge,0),0);
-            auto y1 = this->mesh_points(this->mesh_edges(iedge,0),1);
-            auto x2 = this->mesh_points(this->mesh_edges(iedge,1),0);
-            auto y2 = this->mesh_points(this->mesh_edges(iedge,1),1);
-
-            // GET THE MIDDLE POINT OF THE EDGE
-            auto x_avg = ( x1 + x2 )/2.;
-            auto y_avg = ( y1 + y2 )/2.;
-
-            auto cond = std::sqrt(x_avg*x_avg+y_avg*y_avg);
-
-            Real z1,z2,z3,x3,y3,z_avg;
-            if (this->ndim==3) {
-                z1 = this->mesh_points(this->mesh_edges(iedge,0),2);
-                z2 = this->mesh_points(this->mesh_edges(iedge,1),2);
-
-                x3 = this->mesh_points(this->mesh_edges(iedge,2),0);
-                y3 = this->mesh_points(this->mesh_edges(iedge,2),1);
-                z3 = this->mesh_points(this->mesh_edges(iedge,2),2);
-
-                x_avg = (x1 + x2 + x3 )/3.;
-                y_avg = (y1 + y2 + y3 )/3.;
-                z_avg = (z1 + z2 + z3 )/3.;
-
-                cond = std::sqrt(x_avg*x_avg+y_avg*y_avg+z_avg*z_avg);
-            }
-
-            if (cond<this->condition)
+            for (Integer iedge=0; iedge<mesh_edges.rows(); iedge++)
             {
-                projection_criteria(iedge)=1;
+                // GET THE COORDINATES OF THE TWO END NODES
+                auto x1 = this->mesh_points(this->mesh_edges(iedge,0),0);
+                auto y1 = this->mesh_points(this->mesh_edges(iedge,0),1);
+                auto x2 = this->mesh_points(this->mesh_edges(iedge,1),0);
+                auto y2 = this->mesh_points(this->mesh_edges(iedge,1),1);
+
+                // GET THE MIDDLE POINT OF THE EDGE
+                auto x_avg = ( x1 + x2 )/2.;
+                auto y_avg = ( y1 + y2 )/2.;
+
+                auto cond = std::sqrt(x_avg*x_avg+y_avg*y_avg);
+
+                if (cond<this->condition)
+                {
+                    projection_criteria(iedge)=1;
+                }
+            }
+        }
+        else if (ndim==3) 
+        {
+            for (Integer iface=0; iface<this->mesh_faces.rows(); iface++)
+            {
+                // GET THE COORDINATES OF THE TWO END NODES
+                auto x1 = this->mesh_points(this->mesh_faces(iface,0),0);
+                auto y1 = this->mesh_points(this->mesh_faces(iface,0),1);
+                auto z1 = this->mesh_points(this->mesh_faces(iface,0),2);
+                auto x2 = this->mesh_points(this->mesh_faces(iface,1),0);
+                auto y2 = this->mesh_points(this->mesh_faces(iface,1),1);
+                auto z2 = this->mesh_points(this->mesh_faces(iface,1),2);
+                auto x3 = this->mesh_points(this->mesh_faces(iface,2),0);
+                auto y3 = this->mesh_points(this->mesh_faces(iface,2),1);
+                auto z3 = this->mesh_points(this->mesh_faces(iface,2),2);
+
+                auto x_avg = (x1 + x2 + x3 )/3.;
+                auto y_avg = (y1 + y2 + y3 )/3.;
+                auto z_avg = (z1 + z2 + z3 )/3.;
+
+                auto cond = std::sqrt(x_avg*x_avg+y_avg*y_avg+z_avg*z_avg);
+
+                if (cond<this->condition)
+                {
+                    projection_criteria(iface)=1;
+                }
             }
         }
     }
