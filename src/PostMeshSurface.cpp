@@ -202,28 +202,14 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
                this->dirichlet_faces(index_face,iter) = this->mesh_faces(iface,iter);
             }
 
-            // GET THE COORDINATES OF THE FACE VERTICES (VERTICES OF TRIANGLE/QUADS)
+            // GET THE COORDINATES OF THE FACE VERTICES
             Eigen::MatrixR face_vertices(no_face_vertices,ndim);
             for (auto i=0; i<no_face_vertices; ++i) {
                 for (auto j=0; j<ndim; ++j) {
                     face_vertices(i,j) = this->mesh_points(this->mesh_faces(iface,i),j);
                 }
             }
-            // auto x1 = this->mesh_points(this->mesh_faces(iface,0),0);
-            // auto y1 = this->mesh_points(this->mesh_faces(iface,0),1);
-            // auto z1 = this->mesh_points(this->mesh_faces(iface,0),2);
 
-            // auto x2 = this->mesh_points(this->mesh_faces(iface,1),0);
-            // auto y2 = this->mesh_points(this->mesh_faces(iface,1),1);
-            // auto z2 = this->mesh_points(this->mesh_faces(iface,1),2);
-
-            // auto x3 = this->mesh_points(this->mesh_faces(iface,2),0);
-            // auto y3 = this->mesh_points(this->mesh_faces(iface,2),1);
-            // auto z3 = this->mesh_points(this->mesh_faces(iface,2),2);
-
-            // std::vector<Integer> mins_1;
-            // std::vector<Integer> mins_2;
-            // std::vector<Integer> mins_3;
             std::vector<std::vector<Integer>> mins(no_face_vertices);
 
             // LOOP OVER SURFACES
@@ -235,37 +221,6 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
                     auto x_surface = this->geometry_points_on_surfaces[isurface](surf_iter,0);
                     auto y_surface = this->geometry_points_on_surfaces[isurface](surf_iter,1);
                     auto z_surface = this->geometry_points_on_surfaces[isurface](surf_iter,2);
-                    // // CHECK IF THE POINT IS ON THE GEOMETRICAL SURFACE
-                    // if (std::abs(x_surface-x1) < projection_precision && \
-                    //         std::abs(y_surface-y1) < projection_precision && \
-                    //         std::abs(z_surface-z1) < projection_precision )
-                    // {
-                    //     // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
-                    //     x1 = x_surface;
-                    //     y1 = y_surface;
-                    //     z1 = z_surface;
-                    //     break;
-                    // }
-                    // else if (std::abs(x_surface-x2) < projection_precision && \
-                    //         std::abs(y_surface-y2) < projection_precision && \
-                    //         std::abs(z_surface-z2) < projection_precision )
-                    // {
-                    //     // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
-                    //     x2 = x_surface;
-                    //     y2 = y_surface;
-                    //     z2 = z_surface;
-                    //     break;
-                    // }
-                    // else if (std::abs(x_surface-x3) < projection_precision && \
-                    //         std::abs(y_surface-y3) < projection_precision && \
-                    //         std::abs(z_surface-z3) < projection_precision )
-                    // {
-                    //     // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
-                    //     x3 = x_surface;
-                    //     y3 = y_surface;
-                    //     z3 = z_surface;
-                    //     break;
-                    // }
                     // CHECK IF THE POINT IS ON THE GEOMETRICAL SURFACE
                     for (auto ivertex = 0; ivertex<no_face_vertices; ++ivertex) {
                         if (std::abs(x_surface-face_vertices(ivertex,0)) < projection_precision && \
@@ -283,10 +238,6 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
 
 
                 // VERTEX POINTS
-                // gp_Pnt vertex_1(x1,y1,z1);
-                // gp_Pnt vertex_2(x2,y2,z2);
-                // gp_Pnt vertex_3(x3,y3,z3);
-
                 std::vector<gp_Pnt> face_gp_vertices(no_face_vertices);
                 for (auto ivertex = 0; ivertex<no_face_vertices; ++ivertex) {
                     face_gp_vertices[ivertex] = gp_Pnt(face_vertices(ivertex,0),face_vertices(ivertex,1),face_vertices(ivertex,2));
@@ -296,12 +247,6 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
 
                 try
                 {
-                    // Extrema_ExtPS extrema_1(vertex_1,adapt_surface,this->projection_precision,
-                    //                         this->projection_precision,Extrema_ExtFlag_MIN);
-                    // Extrema_ExtPS extrema_2(vertex_2,adapt_surface,this->projection_precision,
-                    //                         this->projection_precision,Extrema_ExtFlag_MIN);
-                    // Extrema_ExtPS extrema_3(vertex_3,adapt_surface,this->projection_precision,
-                    //                         this->projection_precision,Extrema_ExtFlag_MIN);
                     std::vector<Extrema_ExtPS> extrema(no_face_vertices);
                     for (auto ivertex = 0; ivertex<no_face_vertices; ++ivertex) {
                         extrema[ivertex] = Extrema_ExtPS(face_gp_vertices[ivertex],adapt_surface,this->projection_precision,
@@ -371,43 +316,12 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
             auto min_mid_distance = 1.0e20;
             auto mid_distance = 1.0e10;
 
-            // auto min_edge_1_distance = 1.0e20;
-            // auto edge_1_distance = 1.0e10;
-
-            // auto min_edge_2_distance = 1.0e20;
-            // auto edge_2_distance = 1.0e10;
-
-            // auto min_edge_3_distance = 1.0e20;
-            // auto edge_3_distance = 1.0e10;
-
-            // auto min_point_1_distance = 1.0e20;
-            // auto point_1_distance = 1.0e10;
-
-            // auto min_point_2_distance = 1.0e20;
-            // auto point_2_distance = 1.0e10;
-
-            // auto min_point_3_distance = 1.0e20;
-            // auto point_3_distance = 1.0e10;
-            // std::vector<Real> min_mid_distances(no_face_vertices,1.0e20);
-            // std::vector<Real> mid_distances(no_face_vertices,1.0e10);
             std::vector<Real> min_vertex_distances(no_face_vertices,1.0e20);
             std::vector<Real> vertex_distances(no_face_vertices,1.0e10);
             std::vector<Real> min_edge_distances(no_face_vertices,1.0e20);
             std::vector<Real> edge_distances(no_face_vertices,1.0e10);
 
-            // GET THE COORDINATES OF THE FACE VERTICES (VERTICES OF TRIANGLE)
-            // auto x1 = this->mesh_points(this->mesh_faces(this->listfaces[idir],0),0);
-            // auto y1 = this->mesh_points(this->mesh_faces(this->listfaces[idir],0),1);
-            // auto z1 = this->mesh_points(this->mesh_faces(this->listfaces[idir],0),2);
-
-            // auto x2 = this->mesh_points(this->mesh_faces(this->listfaces[idir],1),0);
-            // auto y2 = this->mesh_points(this->mesh_faces(this->listfaces[idir],1),1);
-            // auto z2 = this->mesh_points(this->mesh_faces(this->listfaces[idir],1),2);
-
-            // auto x3 = this->mesh_points(this->mesh_faces(this->listfaces[idir],2),0);
-            // auto y3 = this->mesh_points(this->mesh_faces(this->listfaces[idir],2),1);
-            // auto z3 = this->mesh_points(this->mesh_faces(this->listfaces[idir],2),2);
-
+            // GET THE COORDINATES OF THE FACE VERTICES
             Eigen::MatrixR face_vertices(no_face_vertices,ndim);
             for (auto i=0; i<no_face_vertices; ++i) {
                 for (auto j=0; j<ndim; ++j) {
@@ -425,36 +339,6 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
                     auto y_surface = this->geometry_points_on_surfaces[isurface](surf_iter,1);
                     auto z_surface = this->geometry_points_on_surfaces[isurface](surf_iter,2);
                     // CHECK IF THE POINT IS ON THE GEOMETRICAL SURFACE
-                    // if (std::abs(x_surface-x1) < projection_precision && \
-                    //         std::abs(y_surface-y1) < projection_precision && \
-                    //         std::abs(z_surface-z1) < projection_precision )
-                    // {
-                    //     // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
-                    //     x1 = x_surface;
-                    //     y1 = y_surface;
-                    //     z1 = z_surface;
-                    //     break;
-                    // }
-                    // else if (std::abs(x_surface-x2) < projection_precision && \
-                    //         std::abs(y_surface-y2) < projection_precision && \
-                    //         std::abs(z_surface-z2) < projection_precision )
-                    // {
-                    //     // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
-                    //     x2 = x_surface;
-                    //     y2 = y_surface;
-                    //     z2 = z_surface;
-                    //     break;
-                    // }
-                    // else if (std::abs(x_surface-x3) < projection_precision && \
-                    //         std::abs(y_surface-y3) < projection_precision && \
-                    //         std::abs(z_surface-z3) < projection_precision )
-                    // {
-                    //     // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
-                    //     x3 = x_surface;
-                    //     y3 = y_surface;
-                    //     z3 = z_surface;
-                    //     break;
-                    // }
                     for (auto ivertex = 0; ivertex<no_face_vertices; ++ivertex) {
                         if (std::abs(x_surface-face_vertices(ivertex,0)) < projection_precision && \
                                 std::abs(y_surface-face_vertices(ivertex,1)) < projection_precision && \
@@ -469,14 +353,7 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
                     }
                 }
 
-                // GET THE MID-POINT OF THE FACE/TRIANGLE
-                // auto x_avg = ( x1 + x2 + x3 )/3.;
-                // auto y_avg = ( y1 + y2 + y3 )/3.;
-                // auto z_avg = ( z1 + z2 + z3 )/3.;
-                // std::vector<Real> coord_avg(3);
-                // for (auto ivertex = 0; ivertex<no_face_vertices; ++ivertex) { 
-                //     coord_avg[i] = face_vertices(ivertex,0)
-                // }
+                // GET THE MID-POINT OF THE FACE
                 Eigen::RowVectorR coord_avg = face_vertices.colwise().sum().array()/no_face_vertices;
 
                 // gp_Pnt middle_point(x_avg,y_avg,z_avg);
@@ -485,18 +362,13 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
                 // IN 3D A MID-POINT IS NOT ENOUGH TO DECIDE WHICH MESH FACE IS ON WHICH SURFACE
                 // HENCE WE PROJECT THE MIDDLE POINT OF EVERY EDGE, THE REASON BEING THAT IF TWO
                 // EDGES OF A FACE IS ON A SURFACE THAN THE FACE IS ON THE SURFACE
-                // gp_Pnt edge_point_1((x1+x2)/2.,(y1+y2)/2.,(z1+z2)/2.);
-                // gp_Pnt edge_point_2((x1+x3)/2.,(y1+y3)/2.,(z1+z3)/2.);
-                // gp_Pnt edge_point_3((x2+x3)/2.,(y2+y3)/2.,(z2+z3)/2.);
 
                 // VERTEX POINTS
-                // gp_Pnt vertex_point_1(x1,y1,z1);
-                // gp_Pnt vertex_point_2(x2,y2,z2);
-                // gp_Pnt vertex_point_3(x3,y3,z3);
                 std::vector<gp_Pnt> face_gp_vertices(no_face_vertices), edge_mid_points(no_face_vertices);
                 for (auto ivertex = 0; ivertex<no_face_vertices; ++ivertex) {
                     face_gp_vertices[ivertex] = gp_Pnt(face_vertices(ivertex,0),face_vertices(ivertex,1),face_vertices(ivertex,2));
                 }
+                // MID EDGE POINTS
                 edge_mid_points[no_face_vertices-1] = gp_Pnt(   (face_vertices(0,0) + face_vertices(no_face_vertices-1,0))/2.,
                                                                 (face_vertices(0,1) + face_vertices(no_face_vertices-1,1))/2.,
                                                                 (face_vertices(0,2) + face_vertices(no_face_vertices-1,2))/2.);
@@ -513,31 +385,11 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
                     proj.Init(middle_point,this->geometry_surfaces[isurface]);
                     mid_distance = proj.LowerDistance();
 
-                    // MAKE ONLY ONE OBJECT AND UPDATE IT
-                    // GeomAPI_ProjectPointOnSurf proj_edges;
-                    // proj_edges.Init(edge_point_1,this->geometry_surfaces[isurface]);
-                    // edge_1_distance = proj_edges.LowerDistance();
-
-                    // proj_edges.Init(edge_point_2,this->geometry_surfaces[isurface]);
-                    // edge_2_distance = proj_edges.LowerDistance();
-
-                    // proj_edges.Init(edge_point_3,this->geometry_surfaces[isurface]);
-                    // edge_3_distance = proj_edges.LowerDistance();
                     for (auto ivertex=0; ivertex<no_face_vertices; ++ivertex) {
                         proj.Init(edge_mid_points[ivertex],this->geometry_surfaces[isurface]);
                         edge_distances[ivertex] = proj.LowerDistance();
                     }
 
-                    // MAKE ONLY ONE OBJECT AND UPDATE IT
-                    // GeomAPI_ProjectPointOnSurf proj_points;
-                    // proj_points.Init(vertex_point_1,this->geometry_surfaces[isurface]);
-                    // point_1_distance = proj_points.LowerDistance();
-
-                    // proj_points.Init(vertex_point_2,this->geometry_surfaces[isurface]);
-                    // point_2_distance = proj_points.LowerDistance();
-
-                    // proj_points.Init(vertex_point_3,this->geometry_surfaces[isurface]);
-                    // point_3_distance = proj_points.LowerDistance();
                     for (auto ivertex=0; ivertex<no_face_vertices; ++ivertex) {
                         proj.Init(face_gp_vertices[ivertex],this->geometry_surfaces[isurface]);
                         vertex_distances[ivertex] = proj.LowerDistance();
@@ -555,27 +407,6 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
                     min_mid_distance = mid_distance;
                 }
 
-                // if (edge_1_distance < min_edge_1_distance)
-                // {
-                //     // STORE ID OF SURFACES
-                //     this->projection_ID(idir,1) = isurface;
-                //     // RE-ASSIGN
-                //     min_edge_1_distance = edge_1_distance;
-                // }
-                // if (edge_2_distance < min_edge_2_distance)
-                // {
-                //     // STORE ID OF SURFACES
-                //     this->projection_ID(idir,2) = isurface;
-                //     // RE-ASSIGN
-                //     min_edge_2_distance = edge_2_distance;
-                // }
-                // if (edge_3_distance < min_edge_3_distance)
-                // {
-                //     // STORE ID OF SURFACES
-                //     this->projection_ID(idir,3) = isurface;
-                //     // RE-ASSIGN
-                //     min_edge_3_distance = edge_3_distance;
-                // }
                 for (auto ivertex=0; ivertex<no_face_vertices; ++ivertex) {
                     if (edge_distances[ivertex] < min_edge_distances[ivertex])
                     {
@@ -586,27 +417,6 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
                     }  
                 }
 
-                // if (point_1_distance < min_point_1_distance)
-                // {
-                //     // STORE ID OF SURFACES
-                //     this->projection_ID(idir,4) = isurface;
-                //     // RE-ASSIGN
-                //     min_point_1_distance = point_1_distance;
-                // }
-                // if (point_2_distance < min_point_2_distance)
-                // {
-                //     // STORE ID OF SURFACES
-                //     this->projection_ID(idir,5) = isurface;
-                //     // RE-ASSIGN
-                //     min_point_2_distance = point_2_distance;
-                // }
-                // if (point_3_distance < min_point_3_distance)
-                // {
-                //     // STORE ID OF SURFACES
-                //     this->projection_ID(idir,6) = isurface;
-                //     // RE-ASSIGN
-                //     min_point_3_distance = point_3_distance;
-                // }
                 for (auto ivertex=0; ivertex<no_face_vertices; ++ivertex) {
                     if (vertex_distances[ivertex] < min_vertex_distances[ivertex])
                     {
@@ -690,15 +500,11 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
             {
                 // FOR THE GENERAL CASE WE WILL CONSIDER THE MAJORITY
                 // THAT IS ON WHICH SURFACE ARE THE MAJORITY OF THE POINTS LYING
-                // this->projection_ID.row(i).maxCoeff(&max_occurences_idx);
-                // this->dirichlet_faces(i,no_face_vertices) = max_occurences_idx
                 Integer max_occurences_idx;
                 Eigen::Matrix<Integer,DYNAMIC,1> current_proj_ids = this->projection_ID.row(i).transpose();
                 auto freqs = cnp::itemfreq(current_proj_ids);
                 freqs.col(1).maxCoeff(&max_occurences_idx);
                 this->dirichlet_faces(i,no_face_vertices) = freqs(max_occurences_idx,0);
-                // std::sort(current_proj_ids.data(),current_proj_ids.data()+no_entities_projected);
-
             }
         }
     }
@@ -740,29 +546,10 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
             auto min_mid_distance = 1.0e20;
             auto mid_distance = 1.0e10;
 
-            // auto min_edge_1_distance = 1.0e20;
-            // auto edge_1_distance = 1.0e10;
-
-            // auto min_edge_2_distance = 1.0e20;
-            // auto edge_2_distance = 1.0e10;
-
-            // auto min_edge_3_distance = 1.0e20;
-            // auto edge_3_distance = 1.0e10;
             std::vector<Real> min_edge_distances(no_face_vertices,1.0e20);
             std::vector<Real> edge_distances(no_face_vertices,1.0e10);
 
-            // GET THE COORDINATES OF THE FACE VERTICES (VERTICES OF TRIANGLE)
-            // auto x1 = this->mesh_points(this->mesh_faces(iface,0),0);
-            // auto y1 = this->mesh_points(this->mesh_faces(iface,0),1);
-            // auto z1 = this->mesh_points(this->mesh_faces(iface,0),2);
-
-            // auto x2 = this->mesh_points(this->mesh_faces(iface,1),0);
-            // auto y2 = this->mesh_points(this->mesh_faces(iface,1),1);
-            // auto z2 = this->mesh_points(this->mesh_faces(iface,1),2);
-
-            // auto x3 = this->mesh_points(this->mesh_faces(iface,2),0);
-            // auto y3 = this->mesh_points(this->mesh_faces(iface,2),1);
-            // auto z3 = this->mesh_points(this->mesh_faces(iface,2),2);
+            // GET THE COORDINATES OF THE FACE VERTICES
             Eigen::MatrixR face_vertices(no_face_vertices,ndim);
             for (auto i=0; i<no_face_vertices; ++i) {
                 for (auto j=0; j<ndim; ++j) {
@@ -770,19 +557,11 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
                 }
             }
 
-            // GET THE MID-POINT OF THE FACE/TRIANGLE
-            // auto x_avg = ( x1 + x2 + x3 )/3.;
-            // auto y_avg = ( y1 + y2 + y3 )/3.;
-            // auto z_avg = ( z1 + z2 + z3 )/3.;
+            // GET THE MID-POINT OF THE FACE
             Eigen::RowVectorR coord_avg = face_vertices.colwise().sum().array()/no_face_vertices;
 
             // UPDATE POINTS
-            // middle_point.SetX(x_avg); middle_point.SetY(y_avg); middle_point.SetZ(z_avg);
             middle_point.SetX(coord_avg[0]); middle_point.SetY(coord_avg[1]); middle_point.SetZ(coord_avg[2]);
-
-            // edge_point_1.SetX((x1+x2)/2.); edge_point_1.SetY((y1+y2)/2.); edge_point_1.SetZ((z1+z2)/2.);
-            // edge_point_2.SetX((x1+x3)/2.); edge_point_2.SetY((y1+y3)/2.); edge_point_2.SetZ((z1+z3)/2.);
-            // edge_point_3.SetX((x2+x3)/2.); edge_point_3.SetY((y2+y3)/2.); edge_point_3.SetZ((z2+z3)/2.);
 
             std::vector<gp_Pnt> edge_mid_points(no_face_vertices);
             edge_mid_points[no_face_vertices-1] = gp_Pnt(   (face_vertices(0,0) + face_vertices(no_face_vertices-1,0))/2.,
@@ -803,14 +582,6 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
                     proj.Init(middle_point,this->geometry_surfaces[isurface]);
                     mid_distance = proj.LowerDistance();
 
-                    // proj.Init(edge_point_1,this->geometry_surfaces[isurface]);
-                    // edge_1_distance = proj.LowerDistance();
-
-                    // proj.Init(edge_point_2,this->geometry_surfaces[isurface]);
-                    // edge_2_distance = proj.LowerDistance();
-
-                    // proj.Init(edge_point_3,this->geometry_surfaces[isurface]);
-                    // edge_3_distance = proj.LowerDistance();
                     for (auto ivertex=0; ivertex<no_face_vertices; ++ivertex) {
                         proj.Init(edge_mid_points[ivertex],this->geometry_surfaces[isurface]);
                         edge_distances[ivertex] = proj.LowerDistance();
@@ -828,27 +599,6 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
                     min_mid_distance = mid_distance;
                 }
 
-                // if (edge_1_distance < min_edge_1_distance)
-                // {
-                //     // STORE ID OF SURFACES
-                //     this->projection_ID(index_face,1) = isurface;
-                //     // RE-ASSIGN
-                //     min_edge_1_distance = edge_1_distance;
-                // }
-                // if (edge_2_distance < min_edge_2_distance)
-                // {
-                //     // STORE ID OF SURFACES
-                //     this->projection_ID(index_face,2) = isurface;
-                //     // RE-ASSIGN
-                //     min_edge_2_distance = edge_2_distance;
-                // }
-                // if (edge_3_distance < min_edge_3_distance)
-                // {
-                //     // STORE ID OF SURFACES
-                //     this->projection_ID(index_face,3) = isurface;
-                //     // RE-ASSIGN
-                //     min_edge_3_distance = edge_3_distance;
-                // }
                 for (auto ivertex=0; ivertex<no_face_vertices; ++ivertex) {
                     if (edge_distances[ivertex] < min_edge_distances[ivertex])
                     {
