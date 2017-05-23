@@ -46,6 +46,11 @@ else:
                     "-funroll-loops","-finline-functions","-Wno-unused-function",
                     "-flto","-DNPY_NO_DEPRECATED_API","-Wno-cpp"]
 
+
+eigen_include_path = "/usr/local/include/eigen/"
+oce_include_path = "/usr/local/include/oce/"
+
+
 # Link to OpenCascade runtime libraries
 # Search for all subdirectories under /usr/local/lib
 # Change the directory name if occ is elsewhere 
@@ -54,15 +59,28 @@ all_dir_libs = os.listdir(occ_dir)
 occ_libs = []
 for i in all_dir_libs:
     lib_suffix = i.split(".")[-1]
-    if i[:4]=="libT" and (lib_suffix != "a" and lib_suffix != "la" \
-    and lib_suffix != "0"):
+    if i[:4]=="libT" and (lib_suffix != "a" and lib_suffix != "la" and lib_suffix != "0"):
         if "darwin" in _os:
             occ_libs.append(i[3:-6])
         elif "linux" in _os:
             occ_libs.append(":"+i)
 
-eigen_include_path = "/usr/local/include/eigen/"
-oce_include_path = "/usr/local/include/oce/"
+found_oce = False
+for i in occ_libs:
+    if "libTKernel" in i:
+        found_oce = True
+        break
+    
+
+if found_oce is False:
+    occ_dir = "/usr/lib/x86_64-linux-gnu"
+    all_dir_libs = os.listdir(occ_dir)
+    for i in all_dir_libs:
+        lib_suffix = i.split(".")[-1]
+        if i[:4]=="libT" and (lib_suffix != "a" and lib_suffix != "la" and lib_suffix != "0"):
+            occ_libs.append(":"+i)
+
+    oce_include_path = "/usr/include/oce/"
 
 # Create extension module
 extensions = [
@@ -81,6 +99,7 @@ extensions = [
         define_macros=[no_deprecated],
         ),
 ]
+
 
 setup(
     ext_modules = cythonize(extensions),
