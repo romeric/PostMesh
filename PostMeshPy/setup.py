@@ -35,6 +35,27 @@ _cxx_compiler = get_config_vars()['CXX'].split(' ')[0]
 os.environ["CC"] = _cxx_compiler
 os.environ["CXX"] = _cxx_compiler
 
+# args = sys.argv
+# _cxx_specified = False
+# _cxx_cmd_line = 0
+# if len(args) > 1:
+#     for counter, arg in enumerate(args):
+#         if "CXX" in arg:
+#             _cxx_cmd_line = counter +1
+#             _cxx_specified = True
+#         if counter == _cxx_cmd_line:
+#             _cxx_compiler = arg
+# if _cxx_specified:
+#     os.environ["CC"] = _cxx_compiler
+#     os.environ["CXX"] = _cxx_compiler
+
+# Set manually if default variables do not work
+# _cxx_compiler = "/usr/local/bin/g++-7"
+# os.environ["CC"] = _cxx_compiler
+# os.environ["CXX"] = _cxx_compiler
+
+
+
 # Compiler arguments
 if "clang++" in _cxx_compiler or ("c++" in _cxx_compiler and "darwin" in _os):
     compiler_args = ["-O3","-std=c++11","-m64","-march=native","-mtune=native", "-ffp-contract=fast",
@@ -44,6 +65,8 @@ else:
                     "-mfpmath=sse","-ffast-math","-ftree-vectorize", "-finline-limit=100000",
                     "-funroll-loops","-finline-functions","-Wno-unused-function",
                     "-flto","-DNPY_NO_DEPRECATED_API","-Wno-cpp"]
+# if "darwin" in _os:
+    # compiler_args.append("-stdlib=libstdc++")
 
 
 eigen_include_path = "/usr/local/include/eigen/"
