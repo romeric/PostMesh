@@ -58,7 +58,7 @@ Or using pip
     cd PostMeshPy
     python setup.py build_ext
     python setup.py bdist_wheel
-    cd ../../ && pip install PostMeshPy/dist/*.whl
+    cd ../../ && pip install PostMesh/PostMeshPy/dist/*.whl
 
 
 ### Usage
