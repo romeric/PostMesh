@@ -42,12 +42,12 @@ To build PostMesh shared library for C++ API, you typically do
     cd PostMesh
     make
     [sudo] make install
-    
+
 To further build the C++ examples, (after building and installing PostMesh shared library) do
 
     cd examples
     make
-    
+
 To build Cython/Python bindings (make sure you are in PostMesh directory)
 
     cd PostMeshPy
@@ -58,9 +58,9 @@ Or using pip
     cd PostMeshPy
     python setup.py build_ext
     python setup.py bdist_wheel
-    cd .. && pip install PostMeshPy/dist/PostMeshPy-X.Y.whl
-    
-    
+    cd ../../ && pip install PostMeshPy/dist/*.whl
+
+
 ### Usage
 PostMesh provides a very intuitive objected oriented API. The interfaces are designed such that C++ and Python codes look and feel the same. Have a look at the examples directory for getting started with PostMesh. For conveninece, here are two complete examples.
 
@@ -103,14 +103,14 @@ PostMesh provides a very intuitive objected oriented API. The interfaces are des
 ````
 
 #### A complete Python example: [2D] curve projections for high order triangular elements
-Although all C++ methods are also available in Python, there are some convenience functions defined at Python level that can help shorten the script  
+Although all C++ methods are also available in Python, there are some convenience functions defined at Python level that can help shorten the script
 ````python
     # MAKE AN INSTANCE OF PostMeshCurve
     curvilinear_mesh = PostMeshCurve("tri",2)
     curvilinear_mesh.SetScale(scale)
     curvilinear_mesh.SetCondition(condition)
     # SET MESH
-    curvilinear_mesh.SetMesh(elements=elements, points=points, edges=edges, 
+    curvilinear_mesh.SetMesh(elements=elements, points=points, edges=edges,
         faces=np.zeros((1,4),dtype=np.uint64),spacing=nodal_spacing,scale_mesh=True)
     curvilinear_mesh.SetProjectionPrecision(1.0e-04)
     curvilinear_mesh.ComputeProjectionCriteria()
@@ -122,7 +122,7 @@ Although all C++ methods are also available in Python, there are some convenienc
     # OBTAIN MODIFIED MESH POINTS - THIS IS NECESSARY TO ENSURE LINEAR MESH IS ALSO CORRECT
     curvilinear_mesh.ReturnModifiedMeshPoints(points)
     # OBTAIN DIRICHLET DATA - (THE DISPLACMENT OF BOUNDARY NODES)
-    Dirichlet_nodes, Dirichlet_values = curvilinear_mesh.GetDirichletData() 
+    Dirichlet_nodes, Dirichlet_values = curvilinear_mesh.GetDirichletData()
 ````
 
 ## Reference/Citation
@@ -142,4 +142,4 @@ PostMesh can be cited as
 ````
 
 ## Disclaimer
-PostMesh does not directly produce curved volume meshes, but rather curved surface meshes. As mentioned before, the former step can be achieved by relying on a solid mechanics solver.  
+PostMesh does not directly produce curved volume meshes, but rather curved surface meshes. As mentioned before, the former step can be achieved by relying on a solid mechanics solver.
