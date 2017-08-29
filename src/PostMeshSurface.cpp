@@ -414,7 +414,7 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
                         this->projection_ID(idir,ivertex+1) = isurface;
                         // RE-ASSIGN
                         min_edge_distances[ivertex] = edge_distances[ivertex];
-                    }  
+                    }
                 }
 
                 for (auto ivertex=0; ivertex<no_face_vertices; ++ivertex) {
@@ -424,7 +424,7 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
                         this->projection_ID(idir,ivertex+no_face_vertices+1) = isurface;
                         // RE-ASSIGN
                         min_vertex_distances[ivertex] = vertex_distances[ivertex];
-                    }  
+                    }
                 }
             }
         }
@@ -433,7 +433,7 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
     // BASED ON FOUR PROJECTIONS DECIDE WHICH FACE IS ON WHICH SURFACE
     if (this->mesh_element_type == "tet") {
         // FOR TETS ONLY - KEEP IT FOR BACKWARD COMPATIBILITY REASONS
-        // AS IT CONTAINS HEURISTICS 
+        // AS IT CONTAINS HEURISTICS
         for (auto i=0; i<this->dirichlet_faces.rows(); ++i)
         {
             if (dirichlet_faces(i,3)==-1)
@@ -606,7 +606,7 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
                         this->projection_ID(index_face,ivertex+1) = isurface;
                         // RE-ASSIGN
                         min_edge_distances[ivertex] = edge_distances[ivertex];
-                    }  
+                    }
                 }
             }
             index_face +=1;
@@ -677,7 +677,7 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
             {
                 this->dirichlet_faces(i,no_face_vertices) = this->projection_ID(i,0);
             }
-        }  
+        }
     }
 }
 
@@ -825,23 +825,23 @@ void PostMeshSurface::IdentifySurfacesIntersections()
     cnp::sort_rows(edges_only);
     edges.block(0,0,edges.rows(),2) = edges_only;
 
-    Eigen::MatrixI faces_with_curve_projection_edges(no_face_vertices*this->dirichlet_faces.rows(),2);
+    const auto no_dir_faces = this->dirichlet_faces.rows();
+    Eigen::MatrixI faces_with_curve_projection_edges(no_face_vertices*no_dir_faces,2);
     auto counter = 0;
     for (auto i=0; i<edges.rows();++i)
     {
         for (auto j=i+1; j<edges.rows();++j)
         {
-            if ( i!=j && (edges(i,0)==edges(j,0) && edges(i,1)==edges(j,1)) )
+            if ( edges(i,0)==edges(j,0) && edges(i,1)==edges(j,1) && edges(i,2) != edges(j,2) )
             {
-                if (edges(i,2) != edges(j,2))
-                {
-                    faces_with_curve_projection_edges(2*counter,0) = i % this->dirichlet_faces.rows();
-                    faces_with_curve_projection_edges(2*counter,1) = i / this->dirichlet_faces.rows();
+                faces_with_curve_projection_edges(2*counter,0) = i % no_dir_faces;
+                faces_with_curve_projection_edges(2*counter,1) = i / no_dir_faces;
 
-                    faces_with_curve_projection_edges(2*counter+1,0) = j % this->dirichlet_faces.rows();
-                    faces_with_curve_projection_edges(2*counter+1,1) = j / this->dirichlet_faces.rows();
-                    counter++;
-                }
+                faces_with_curve_projection_edges(2*counter+1,0) = j % no_dir_faces;
+                faces_with_curve_projection_edges(2*counter+1,1) = j / no_dir_faces;
+                counter++;
+                // BREAK AS AN EDGE CAN ONLY GET REPEATED TWICE
+                break;
             }
         }
     }
@@ -900,7 +900,7 @@ void PostMeshSurface::ProjectMeshOnSurface()
                         std::abs(y_surface-y) < projection_precision && \
                         std::abs(z_surface-z) < projection_precision )
                 {
-                    // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE 
+                    // PROJECT THE SURFACE VERTEX INSTEAD OF THE FACE NODE
                     // THIS IS NECESSARY TO ENSURE SUCCESSFUL PROJECTION
                     x = x_surface;
                     y = y_surface;
@@ -1153,7 +1153,7 @@ void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integ
     }
 }
 
-void PostMeshSurface::MeshPointInversionSurfaceArcLength(Integer project_on_curves, 
+void PostMeshSurface::MeshPointInversionSurfaceArcLength(Integer project_on_curves,
     Real OrthTol, Real *FEbases, Integer rows, Integer cols)
 {
     if (this->mesh_element_type != "tet") {
@@ -1321,7 +1321,7 @@ void PostMeshSurface::GetBoundaryPointsOrder()
             edge2.push_back((C+2)*(C+2) - C + i);
             edge3.push_back(C + 4 + i*(C+2));
         }
-        
+
         edge0.insert(edge0.begin(),0);
         edge0.push_back(1);
 

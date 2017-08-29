@@ -1,10 +1,9 @@
 from setuptools import setup
 from distutils.command.clean import clean
 from distutils.extension import Extension
-from distutils.sysconfig import get_config_vars 
+from distutils.sysconfig import get_config_vars
 from Cython.Build import cythonize
-import os, platform
-import sys
+import os, platform, sys, fnmatch
 import numpy
 
 
@@ -53,7 +52,7 @@ oce_include_path = "/usr/local/include/oce/"
 
 # Link to OpenCascade runtime libraries
 # Search for all subdirectories under /usr/local/lib
-# Change the directory name if occ is elsewhere 
+# Change the directory name if occ is elsewhere
 occ_dir = "/usr/local/lib"
 all_dir_libs = os.listdir(occ_dir)
 occ_libs = []
@@ -67,25 +66,48 @@ for i in all_dir_libs:
 
 found_oce = False
 for i in occ_libs:
-    if "libTKernel" in i:
+    if "TKernel" in i:
         found_oce = True
         break
-    
+
+
+# if found_oce is False:
+#     matches = []
+#     for root, dirnames, filenames in os.walk('/usr/local/'):
+#         for dirname in fnmatch.filter(dirnames, 'oce'):
+#             matches.append(os.path.join(root, dirname))
+#     for d in matches:
+#         dd = next(os.walk(d))[1]
+#         if "lib" not in dd:
+#             dd = next(os.walk(d))[1]
+#         all_dir_libs = os.path.join(d,dd[0])
+#         for i in all_dir_libs:
+#             lib_suffix = i.split(".")[-1]
+#             if i[:4]=="libT" and (lib_suffix != "a" and lib_suffix != "la" and lib_suffix != "0"):
+#                 occ_libs.append(":"+i)
+#         break
+
 
 if found_oce is False:
-    occ_dir = "/usr/lib/x86_64-linux-gnu"
+    if "darwin" in _os:
+        version = next(os.walk("/usr/local/Cellar/oce/"))[1][0]
+        occ_dir = os.path.join("/usr/local/Cellar/oce",version,"lib")
+        oce_include_path = os.path.join("/usr/local/Cellar/oce",version,"include","oce")
+    elif "linux" in _os:
+        occ_dir = "/usr/lib/x86_64-linux-gnu"
+        oce_include_path = "/usr/include/oce/"
+
     all_dir_libs = os.listdir(occ_dir)
     for i in all_dir_libs:
         lib_suffix = i.split(".")[-1]
         if i[:4]=="libT" and (lib_suffix != "a" and lib_suffix != "la" and lib_suffix != "0"):
             occ_libs.append(":"+i)
 
-    oce_include_path = "/usr/include/oce/"
 
 # Create extension module
 extensions = [
     Extension(
-        name = "PostMeshPy",  
+        name = "PostMeshPy",
         sources = sourcefiles,
         language="c++",
         include_dirs = [_pwd_,
@@ -93,7 +115,7 @@ extensions = [
                         eigen_include_path,
                         oce_include_path,
                         numpy.get_include()],
-        libraries= ["stdc++"] + occ_libs, 
+        libraries= ["stdc++"] + occ_libs,
         library_dirs = [_pwd_,"/usr/local/lib/"],
         extra_compile_args = compiler_args,
         define_macros=[no_deprecated],
