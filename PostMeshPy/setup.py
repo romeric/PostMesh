@@ -63,7 +63,7 @@ if "clang++" in _cxx_compiler or ("c++" in _cxx_compiler and "darwin" in _os):
 else:
     compiler_args = ["-O3","-std=c++11","-m64","-march=native","-mtune=native","-ffp-contract=fast",
                     "-mfpmath=sse","-ffast-math","-ftree-vectorize","-finline-functions","-finline-limit=100000",
-                    "-funroll-loops",,"-Wno-unused-function","-flto","-DNPY_NO_DEPRECATED_API","-Wno-cpp"]
+                    "-funroll-loops","-Wno-unused-function","-flto","-DNPY_NO_DEPRECATED_API","-Wno-cpp"]
 
 # if "darwin" in _os:
     # compiler_args.append("-stdlib=libstdc++")
