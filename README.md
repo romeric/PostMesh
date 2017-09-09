@@ -143,4 +143,4 @@ PostMesh can be cited as
 ````
 
 ## Disclaimer
-PostMesh does not directly produce curved volume meshes, but rather curved surface meshes. As mentioned before, the former step can be achieved by relying on a solid mechanics solver.
+PostMesh does not directly produce curved volume meshes, but only curved surface meshes. As mentioned before, the former step can be achieved by relying on a solid mechanics solver.
