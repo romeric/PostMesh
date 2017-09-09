@@ -1203,14 +1203,18 @@ void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integ
             auto z = this->mesh_points(this->mesh_faces(this->listfaces[idir],j),2);
 
             // LOOP OVER ALL GEOMETRY POINTS AND IF POSSIBLE PICK THOSE INSTEAD
-            for (auto &k : this->geometry_points)
+            // FOR BIG MESHES AND COMPLICATED GEOMETRIES THIS IS VERY TIME CONSUMING
+            if (j<no_face_vertices)
             {
-                if ( (std::abs(k.X() - x ) < this->projection_precision) && \
-                     (std::abs(k.Y() - y ) < this->projection_precision) && \
-                     (std::abs(k.Z() - z ) < this->projection_precision) )
+                for (auto &k : this->geometry_points)
                 {
-                    x = k.X(); y = k.Y(); z = k.Z();
-                    break;
+                    if ( (std::abs(k.X() - x ) < this->projection_precision) && \
+                         (std::abs(k.Y() - y ) < this->projection_precision) && \
+                         (std::abs(k.Z() - z ) < this->projection_precision) )
+                    {
+                        x = k.X(); y = k.Y(); z = k.Z();
+                        break;
+                    }
                 }
             }
 
