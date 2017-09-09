@@ -482,6 +482,32 @@ void PostMeshBase::GetGeomEdges()
         // STORE TYPE OF CURVE (CURVE TYPES ARE DEFINED IN OCC_INC.hpp)
         this->geometry_curves_types.push_back(adapt_curve.GetType());
     }
+
+
+    // DETERMINE WHICH CURVES SET ON WHICH SURFACES
+    for (TopExp_Explorer explorer(this->imported_shape,TopAbs_FACE); explorer.More(); explorer.Next())
+    {
+        std::vector<Handle_Geom_Curve> current_surface_curves;
+        std::vector<UInteger> current_surface_curves_types;
+        for (TopExp_Explorer explorer_edge(explorer.Current(),TopAbs_EDGE); explorer_edge.More(); explorer_edge.Next())
+        {
+            // GET THE EDGES
+            TopoDS_Edge current_edge = TopoDS::Edge(explorer_edge.Current());
+            // CONVERT THEM TO GEOM_CURVE
+            Real first, last;
+            Handle_Geom_Curve curve = BRep_Tool::Curve(current_edge,first,last);
+            // STORE HANDLE IN THE CONTAINER
+            current_surface_curves.push_back(curve);
+
+            // TO GET TYPE OF THE CURVE - UNLIKE GeomAdaptor_Curve, BRepAdaptor_Curve
+            // DOES NOT THROW BUT RETURNS GeomAbs_OtherCurve FOR UNKNOWN TYPE OF CURVES
+            BRepAdaptor_Curve adapt_curve(current_edge);
+            // STORE TYPE OF CURVE (CURVE TYPES ARE DEFINED IN OCC_INC.hpp)
+            current_surface_curves_types.push_back(adapt_curve.GetType());
+        }
+        this->geometry_surfaces_curves.push_back(current_surface_curves);
+        this->geometry_surfaces_curves_types.push_back(current_surface_curves_types);
+    }
 }
 
 void PostMeshBase::GetGeomFaces()
@@ -536,7 +562,7 @@ void PostMeshBase::ComputeProjectionCriteria()
     if (this->projection_criteria.rows()==0)
     {
         this->projection_criteria.setZero(mesh_edges.rows(),mesh_edges.cols());
-        if (ndim==2) 
+        if (ndim==2)
         {
             for (Integer iedge=0; iedge<mesh_edges.rows(); iedge++)
             {
@@ -558,7 +584,7 @@ void PostMeshBase::ComputeProjectionCriteria()
                 }
             }
         }
-        else if (ndim==3) 
+        else if (ndim==3)
         {
             for (Integer iface=0; iface<this->mesh_faces.rows(); iface++)
             {

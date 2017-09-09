@@ -784,84 +784,163 @@ void PostMeshSurface::IdentifySurfacesIntersections()
     //! THIS METHOD CHECKS IF THERE ARE EDGES WHICH ARE SHARED BETWEEN TWO FACES
     //! WITH EACH OF THOSE FACES BEING PROJECTED ON TO DIFFERENT SURFACES
 
+
     // BUILD EDGES FIRST
+    const Integer no_dir_faces = this->dirichlet_faces.rows();
     const Integer no_face_vertices = this->GetNoFaceVertices();
-    Eigen::MatrixI edges(this->dirichlet_faces.rows()*no_face_vertices,3);
-    for (auto i=0; i < this->dirichlet_faces.rows(); ++i)
-    {
-        if (this->mesh_element_type == "tet") {
-            edges(i,0) = this->dirichlet_faces(i,0);
-            edges(i,1) = this->dirichlet_faces(i,1);
-            edges(i,2) = this->dirichlet_faces(i,no_face_vertices);
+    const Integer no_edges = no_face_vertices*no_dir_faces;
+    std::vector<std::vector<Integer>> edges(no_edges);
+    std::vector<Integer> edges_surface_flag(no_edges);
 
-            edges(i+this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,0);
-            edges(i+this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
-            edges(i+this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
-
-            edges(i+2*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,1);
-            edges(i+2*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
-            edges(i+2*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
-        }
-        else if (this->mesh_element_type == "hex") {
-            edges(i,0) = this->dirichlet_faces(i,0);
-            edges(i,1) = this->dirichlet_faces(i,1);
-            edges(i,2) = this->dirichlet_faces(i,no_face_vertices);
-
-            edges(i+this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,1);
-            edges(i+this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
-            edges(i+this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
-
-            edges(i+2*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,2);
-            edges(i+2*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,3);
-            edges(i+2*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
-
-            edges(i+3*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,3);
-            edges(i+3*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,0);
-            edges(i+3*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
-        }
-    }
-
-    Eigen::MatrixI edges_only = edges.block(0,0,edges.rows(),2);
-    cnp::sort_rows(edges_only);
-    edges.block(0,0,edges.rows(),2) = edges_only;
-
-    const auto no_dir_faces = this->dirichlet_faces.rows();
-    Eigen::MatrixI faces_with_curve_projection_edges(no_face_vertices*no_dir_faces,2);
-    auto counter = 0;
-    for (auto i=0; i<edges.rows();++i)
-    {
-        for (auto j=i+1; j<edges.rows();++j)
+    if (this->mesh_element_type == "tet") {
+        for (auto i=0; i<no_dir_faces; ++i)
         {
-            if ( edges(i,0)==edges(j,0) && edges(i,1)==edges(j,1) && edges(i,2) != edges(j,2) )
-            {
-                faces_with_curve_projection_edges(2*counter,0) = i % no_dir_faces;
-                faces_with_curve_projection_edges(2*counter,1) = i / no_dir_faces;
+            edges[i]                = {this->dirichlet_faces(i,0),this->dirichlet_faces(i,1)};
+            edges[i+no_dir_faces]   = {this->dirichlet_faces(i,0),this->dirichlet_faces(i,2)};
+            edges[i+2*no_dir_faces] = {this->dirichlet_faces(i,1),this->dirichlet_faces(i,2)};
 
-                faces_with_curve_projection_edges(2*counter+1,0) = j % no_dir_faces;
-                faces_with_curve_projection_edges(2*counter+1,1) = j / no_dir_faces;
-                counter++;
-                // BREAK AS AN EDGE CAN ONLY GET REPEATED TWICE
-                break;
-            }
+            const auto surface_flag = this->dirichlet_faces(i,no_face_vertices);
+            edges_surface_flag[i]                   = surface_flag;
+            edges_surface_flag[i+no_dir_faces]      = surface_flag;
+            edges_surface_flag[i+2*no_dir_faces]    = surface_flag;
+        }
+    }
+    else if (this->mesh_element_type == "hex") {
+        for (auto i=0; i<no_dir_faces; ++i)
+        {
+            edges[i]                = {this->dirichlet_faces(i,0),this->dirichlet_faces(i,1)};
+            edges[i+no_dir_faces]   = {this->dirichlet_faces(i,1),this->dirichlet_faces(i,2)};
+            edges[i+2*no_dir_faces] = {this->dirichlet_faces(i,2),this->dirichlet_faces(i,3)};
+            edges[i+3*no_dir_faces] = {this->dirichlet_faces(i,3),this->dirichlet_faces(i,0)};
+
+            const auto surface_flag = this->dirichlet_faces(i,no_face_vertices);
+            edges_surface_flag[i]                   = surface_flag;
+            edges_surface_flag[i+no_dir_faces]      = surface_flag;
+            edges_surface_flag[i+2*no_dir_faces]    = surface_flag;
+            edges_surface_flag[i+3*no_dir_faces]    = surface_flag;
         }
     }
 
-    auto arr_row = cnp::arange(2*counter);
-    auto arr_col = cnp::arange(2);
-    faces_with_curve_projection_edges = cnp::take(faces_with_curve_projection_edges,arr_row,arr_col);
+    // SORT ROWS - ONY THE FIRST TWO ELEMENTS
+    cnp::sort_rows(edges);
+    std::vector<Integer> idx = cnp::argsort(edges);
+    std::vector<Integer> invidx = cnp::argsort(idx);
+
+    std::vector<Integer> faces_with_curve_projection_edges_0;
+    std::vector<Integer> faces_with_curve_projection_edges_1;
+    faces_with_curve_projection_edges_0.reserve(no_edges);
+    faces_with_curve_projection_edges_1.reserve(no_edges);
+
+    for (auto k=0; k<no_edges;++k)
+    {
+        if (invidx[k] == no_edges-1) continue;
+        const Integer i = idx[invidx[k]];
+        const Integer j = idx[invidx[k]+1];
+        if ( edges[i][0]==edges[j][0] && edges[i][1]==edges[j][1] && edges_surface_flag[i] != edges_surface_flag[j] )
+        {
+            faces_with_curve_projection_edges_0.push_back(i % no_dir_faces);
+            faces_with_curve_projection_edges_0.push_back(j % no_dir_faces);
+
+            faces_with_curve_projection_edges_1.push_back(i / no_dir_faces);
+            faces_with_curve_projection_edges_1.push_back(j / no_dir_faces);
+        }
+    }
 
     this->GetBoundaryPointsOrder();
 
-    this->curve_surface_projection_flags.setZero(this->dirichlet_faces.rows(),this->mesh_faces.cols());
-    for (auto i=0; i<faces_with_curve_projection_edges.rows(); ++i)
+    this->curve_surface_projection_flags.setZero(no_dir_faces,this->mesh_faces.cols());
+    for (auto i=0; i<Integer(faces_with_curve_projection_edges_0.size()); ++i)
     {
-        auto current_edge = faces_with_curve_projection_edges(i,1);
+        auto current_edge = faces_with_curve_projection_edges_1[i];
         auto edge_order = this->boundary_faces_order.row(current_edge);
         for (auto j=1; j< edge_order.cols()-1; ++j)
         {
-            this->curve_surface_projection_flags(faces_with_curve_projection_edges(i,0),edge_order[j]) = 1;
+            this->curve_surface_projection_flags(faces_with_curve_projection_edges_0[i],edge_order[j]) = 1;
         }
     }
+
+
+    // // FOR MAINTENANCE - OLD AND EXTREMELY INEFFICIENT APPROACH
+    // // BUILD EDGES FIRST
+    // const Integer no_face_vertices = this->GetNoFaceVertices();
+    // Eigen::MatrixI edges(this->dirichlet_faces.rows()*no_face_vertices,3);
+    // for (auto i=0; i < this->dirichlet_faces.rows(); ++i)
+    // {
+    //     if (this->mesh_element_type == "tet") {
+    //         edges(i,0) = this->dirichlet_faces(i,0);
+    //         edges(i,1) = this->dirichlet_faces(i,1);
+    //         edges(i,2) = this->dirichlet_faces(i,no_face_vertices);
+
+    //         edges(i+this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,0);
+    //         edges(i+this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
+    //         edges(i+this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
+
+    //         edges(i+2*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,1);
+    //         edges(i+2*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
+    //         edges(i+2*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
+    //     }
+    //     else if (this->mesh_element_type == "hex") {
+    //         edges(i,0) = this->dirichlet_faces(i,0);
+    //         edges(i,1) = this->dirichlet_faces(i,1);
+    //         edges(i,2) = this->dirichlet_faces(i,no_face_vertices);
+
+    //         edges(i+this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,1);
+    //         edges(i+this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
+    //         edges(i+this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
+
+    //         edges(i+2*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,2);
+    //         edges(i+2*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,3);
+    //         edges(i+2*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
+
+    //         edges(i+3*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,3);
+    //         edges(i+3*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,0);
+    //         edges(i+3*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
+    //     }
+    // }
+
+    // Eigen::MatrixI edges_only = edges.block(0,0,edges.rows(),2);
+    // cnp::sort_rows(edges_only);
+    // edges.block(0,0,edges.rows(),2) = edges_only;
+
+
+    // const auto no_dir_faces = this->dirichlet_faces.rows();
+    // Eigen::MatrixI faces_with_curve_projection_edges(no_face_vertices*no_dir_faces,2);
+    // auto counter = 0;
+    // for (auto i=0; i<edges.rows();++i)
+    // {
+    //     for (auto j=i+1; j<edges.rows();++j)
+    //     {
+    //         if ( edges(i,0)==edges(j,0) && edges(i,1)==edges(j,1) && edges(i,2) != edges(j,2) )
+    //         {
+    //             faces_with_curve_projection_edges(2*counter,0) = i % no_dir_faces;
+    //             faces_with_curve_projection_edges(2*counter,1) = i / no_dir_faces;
+
+    //             faces_with_curve_projection_edges(2*counter+1,0) = j % no_dir_faces;
+    //             faces_with_curve_projection_edges(2*counter+1,1) = j / no_dir_faces;
+    //             counter++;
+    //             // BREAK AS AN EDGE CAN ONLY GET REPEATED TWICE
+    //             break;
+    //         }
+    //     }
+    // }
+
+    // auto arr_row = cnp::arange(2*counter);
+    // auto arr_col = cnp::arange(2);
+    // faces_with_curve_projection_edges = cnp::take(faces_with_curve_projection_edges,arr_row,arr_col);
+    // print(faces_with_curve_projection_edges);
+
+    // this->GetBoundaryPointsOrder();
+
+    // this->curve_surface_projection_flags.setZero(this->dirichlet_faces.rows(),this->mesh_faces.cols());
+    // for (auto i=0; i<faces_with_curve_projection_edges.rows(); ++i)
+    // {
+    //     auto current_edge = faces_with_curve_projection_edges(i,1);
+    //     auto edge_order = this->boundary_faces_order.row(current_edge);
+    //     for (auto j=1; j< edge_order.cols()-1; ++j)
+    //     {
+    //         this->curve_surface_projection_flags(faces_with_curve_projection_edges(i,0),edge_order[j]) = 1;
+    //     }
+    // }
 }
 
 void PostMeshSurface::ProjectMeshOnSurface()
@@ -1016,37 +1095,74 @@ void PostMeshSurface::RepairDualProjectedParameters()
     cnp::sort_back_rows(this->projection_V,this->sorted_projected_indicesV);
 }
 
-void PostMeshSurface::MeshPointInversionCurve(const gp_Pnt &point_in, gp_Pnt &point_out)
+void PostMeshSurface::MeshPointInversionCurve(const gp_Pnt &point_in, gp_Pnt &point_out, Integer id_surface)
 {
     auto min_distance = 1.0e20;
     auto distance = 1.0e10;
-    for (UInteger i=0; i<this->geometry_curves.size(); ++i)
-    {
-        auto current_curve = this->geometry_curves[i];
-        auto current_curve_type = this->geometry_curves_types[i];
-        if (current_curve_type != GeomAbs_OtherCurve)
-        {
-            try
-            {
-    //            Real uEq;
-    //            // TRY NEWTON-RAPSHON PROJECTION METHOD WITH LOWER PRECISION
-    //            ShapeAnalysis_Curve proj_Newton;
-    //            auto Newton_precision = projection_precision < 1.0e-05 ? 1.0e-5: projection_precision;
-    //            proj_Newton.Project(current_curve,point_in,Newton_precision,point_out,uEq,True);
 
-                GeomAPI_ProjectPointOnCurve proj;
-                proj.Init(point_in,current_curve);
-                distance = proj.LowerDistance();
-                if (distance < min_distance)
+    if (id_surface != -1) {
+
+        // GET THE CURVES OF THE CURRENT SURFACE
+        std::vector<Handle_Geom_Curve> current_surface_curves = this->geometry_surfaces_curves[id_surface];
+        std::vector<UInteger> current_surface_curves_types = this->geometry_surfaces_curves_types[id_surface];
+        // ITERATE OVER THEM
+        for (UInteger i=0; i<current_surface_curves.size(); ++i)
+        {
+            Handle_Geom_Curve current_curve = current_surface_curves[i];
+            auto current_curve_type = current_surface_curves_types[i];
+            if (current_curve_type != GeomAbs_OtherCurve)
+            {
+                try
                 {
-                    auto uEq = proj.LowerDistanceParameter();
-                    current_curve->D0(uEq,point_out);
-                    min_distance = distance;
+                    GeomAPI_ProjectPointOnCurve proj;
+                    proj.Init(point_in,current_curve);
+                    distance = proj.LowerDistance();
+                    if (distance < min_distance)
+                    {
+                        auto uEq = proj.LowerDistanceParameter();
+                        current_curve->D0(uEq,point_out);
+                        min_distance = distance;
+                    }
+                }
+                catch (StdFail_NotDone)
+                {
+                    // DO NOTHING
                 }
             }
-            catch (StdFail_NotDone)
+        }
+    }
+    else
+    {
+        // NOT USED ANYMORE [VERY TIME CONSUMING AS IT LOOPS OVER ALL CURVES]
+        // HOWEVER THIS WILL WORK ON SITUATIONS WHERE THE FORMER APPROACH MIGHT FAIL
+        for (UInteger i=0; i<this->geometry_curves.size(); ++i)
+        {
+            Handle_Geom_Curve current_curve = this->geometry_curves[i];
+            auto current_curve_type = this->geometry_curves_types[i];
+            if (current_curve_type != GeomAbs_OtherCurve)
             {
-                // DO NOTHING
+                try
+                {
+                   // Real uEq;
+                   // // TRY NEWTON-RAPSHON PROJECTION METHOD WITH LOWER PRECISION
+                   // ShapeAnalysis_Curve proj_Newton;
+                   // auto Newton_precision = projection_precision < 1.0e-05 ? 1.0e-5: projection_precision;
+                   // proj_Newton.Project(current_curve,point_in,Newton_precision,point_out,uEq,True);
+
+                    GeomAPI_ProjectPointOnCurve proj;
+                    proj.Init(point_in,current_curve);
+                    distance = proj.LowerDistance();
+                    if (distance < min_distance)
+                    {
+                        auto uEq = proj.LowerDistanceParameter();
+                        current_curve->D0(uEq,point_out);
+                        min_distance = distance;
+                    }
+                }
+                catch (StdFail_NotDone)
+                {
+                    // DO NOTHING
+                }
             }
         }
     }
@@ -1071,10 +1187,8 @@ void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integ
     }
 
     auto starter = 3;
-    if (modify_linear_mesh==1)
-    {
-        starter = 0;
-    }
+    if (this->mesh_element_type == "hex") starter = 4;
+    if (modify_linear_mesh==1) starter = 0;
 
 
     for (auto idir=0; idir< this->no_dir_faces; ++idir)
@@ -1111,7 +1225,7 @@ void PostMeshSurface::MeshPointInversionSurface(Integer project_on_curves, Integ
             // CHECK IF THE POINT IS SUPPOSED TO BE PROEJECTED TO A CURVE
             if (this->curve_surface_projection_flags(idir,j) == 1 && project_on_curves == 1)
             {
-                this->MeshPointInversionCurve(point_to_be_projected,xEq);
+                this->MeshPointInversionCurve(point_to_be_projected, xEq, id_surface);
             }
             else
             {

@@ -131,9 +131,16 @@ STATIC std::vector<Integer> argsort(const std::vector<T> &v)
 }
 
 template<typename T>
+STATIC ALWAYS_INLINE void sort_rows(std::vector<std::vector<T>> &arr)
+{
+    //! SORTS A 2D ARRAY ROW BY ROW - IN-PLACE
+    for (auto &k: arr) std::sort(k.begin(),k.end());
+}
+
+template<typename T>
 STATIC ALWAYS_INLINE void sort_rows(Eigen::MatrixBase<T> &arr)
 {
-    //! SORTS A 2D ARRAY ROW BY ROW
+    //! SORTS A 2D ARRAY ROW BY ROW - IN-PLACE
     for (auto i=0; i<arr.rows(); ++i)
     {
         std::sort(arr.row(i).data(),arr.row(i).data()+arr.row(i).size());
@@ -143,7 +150,7 @@ STATIC ALWAYS_INLINE void sort_rows(Eigen::MatrixBase<T> &arr)
 template<typename T>
 STATIC void sort_rows(Eigen::PlainObjectBase<T> &arr, Eigen::MatrixI &idx)
 {
-    //! SORTS A 2D ARRAY ROW BY ROW
+    //! SORTS A 2D ARRAY ROW BY ROW AND RETURN INDICES - IN-PLACE
     for (auto i=0; i<arr.rows(); ++i)
     {
         std::vector<Integer> row_indices;
@@ -333,8 +340,8 @@ unique(const Eigen::PlainObjectBase<T> &arr)
 }
 
 template<typename T>
-STATIC ALWAYS_INLINE std::tuple<std::vector<T>,std::vector<Integer> > 
-unique(const std::vector<T> &v, bool return_index=false) 
+STATIC ALWAYS_INLINE std::tuple<std::vector<T>,std::vector<Integer> >
+unique(const std::vector<T> &v, bool return_index=false)
 {
     //! RETURNS UNIQUE VALUES AND UNIQUE INDICES OF A STD::VECTOR
     if (return_index == false) {

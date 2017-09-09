@@ -44,7 +44,7 @@ public:
     void IdentifySurfacesIntersections();
     void ProjectMeshOnSurface();
     void RepairDualProjectedParameters();
-    void MeshPointInversionCurve(const gp_Pnt &point_in, gp_Pnt &point_out);
+    void MeshPointInversionCurve(const gp_Pnt &point_in, gp_Pnt &point_out, Integer id_surface=-1);
     void MeshPointInversionSurface(Integer project_on_curves, Integer modify_linear_mesh = 0);
     void MeshPointInversionSurfaceArcLength(Integer project_on_curves, Real OrthTol, Real *FEbases, Integer rows, Integer cols);
     void GetBoundaryPointsOrder();

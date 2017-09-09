@@ -201,8 +201,10 @@ public:
     std::vector<gp_Pnt> geometry_points;
     std::vector<Handle_Geom_Curve> geometry_curves;
     std::vector<Handle_Geom_Surface> geometry_surfaces;
+    std::vector<std::vector<Handle_Geom_Curve>> geometry_surfaces_curves;
     std::vector<UInteger> geometry_curves_types;
     std::vector<UInteger> geometry_surfaces_types;
+    std::vector<std::vector<UInteger>> geometry_surfaces_curves_types;
     std::vector<TopoDS_Edge> topo_edges;
     std::vector<TopoDS_Face> topo_faces;
     Eigen::MatrixR displacements_BC;
