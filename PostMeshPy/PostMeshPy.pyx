@@ -141,22 +141,25 @@ cdef class PostMeshBasePy:
         self.baseptr.ReadSTEP(<const char*>filename)
 
     @wraparound(True)
-    def ReadGeometry(self, bytes filename):
+    def ReadGeometry(self, str filename):
         """Read geometry from IGES or STEP files"""
-        suffix = filename.split(".")[-1].upper().lower()
-        if suffix == "iges" or suffix == "igs":
-            self.baseptr.ReadIGES(<const char*>filename)
-        if suffix == "step" or suffix == "stp":
-            self.baseptr.ReadSTEP(<const char*>filename)
+        self.ReadCAD(filename)
 
     @wraparound(True)
-    def ReadCAD(self, bytes filename):
+    def ReadCAD(self, str filename):
         """Read geometry from IGES or STEP files"""
-        suffix = filename.split(".")[-1].upper().lower()
+        # GET THE CASE INSENSITIVE VERSION
+        if getattr(str,'casefold',None) is not None:
+            insen = lambda str_name: str_name.casefold()
+        else:
+            insen = lambda str_name: str_name.upper().lower()
+        suffix = insen(filename).split(".")[-1]
+
+        cdef bytes fname = str.encode(filename)
         if suffix == "iges" or suffix == "igs":
-            self.baseptr.ReadIGES(<const char*>filename)
+            self.baseptr.ReadIGES(<const char*>fname)
         if suffix == "step" or suffix == "stp":
-            self.baseptr.ReadSTEP(<const char*>filename)
+            self.baseptr.ReadSTEP(<const char*>fname)
 
     def GetGeomVertices(self):
         self.baseptr.GetGeomVertices()
