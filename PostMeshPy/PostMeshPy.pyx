@@ -27,20 +27,20 @@ cdef class PostMeshBasePy:
     # CREATE A POINTER TO CPP BASE CLASS
     cdef PostMeshBase *baseptr
 
-    def __cinit__(self, bytes py_element_type, UInteger dimension=2):
+    def __cinit__(self, str py_element_type, UInteger dimension=2):
 
         self.ndim = dimension
         # CONVERT TO CPP STRING EXPLICITLY
-        cdef string cpp_element_type = py_element_type
+        cdef string cpp_element_type = str.encode(py_element_type)
         # CREATE A NEW CPP OBJECT BY CALLING ITS CONSTRUCTOR
         self.baseptr = new PostMeshBase(cpp_element_type,dimension)
         # CHECK IF THE OBJECT WAS CREATED
         if self.baseptr is NULL:
             raise MemoryError("Could not create an instance of PostMesh")
 
-    def Init(self, bytes py_element_type, UInteger dimension=2):
+    def Init(self, str py_element_type, UInteger dimension=2):
         # CONVERT TO CPP STRING EXPLICITLY
-        cdef string cpp_element_type = py_element_type
+        cdef string cpp_element_type = str.encode(py_element_type)
         self.baseptr.Init(cpp_element_type, dimension)
 
     def SetScale(self,Real scale):
@@ -132,13 +132,15 @@ cdef class PostMeshBasePy:
             self.baseptr.ScaleMesh()
         self.baseptr.SetNodalSpacing(&spacing[0,0],spacing.shape[0],spacing.shape[1])
 
-    def ReadIGES(self, bytes filename):
+    def ReadIGES(self, str filename):
         """Read IGES files"""
-        self.baseptr.ReadIGES(<const char*>filename)
+        cdef bytes fname = str.encode(filename)
+        self.baseptr.ReadIGES(<const char*>fname)
 
-    def ReadSTEP(self, bytes filename):
+    def ReadSTEP(self, str filename):
         """Read STEP files"""
-        self.baseptr.ReadSTEP(<const char*>filename)
+        cdef bytes fname = str.encode(filename)
+        self.baseptr.ReadSTEP(<const char*>fname)
 
     @wraparound(True)
     def ReadGeometry(self, str filename):
@@ -190,7 +192,7 @@ cdef class PostMeshBasePy:
         """Retruns number of geometrical surfaces"""
         return self.baseptr.NbSurfaces()
 
-    def SetGeometry(self, bytes filename):
+    def SetGeometry(self, str filename):
         """Convenience method for Python API for setting up the CAD geometry"""
         self.ReadGeometry(filename)
         self.baseptr.GetGeomVertices()
@@ -234,11 +236,11 @@ cdef class PostMeshCurvePy(PostMeshBasePy):
     such as triangular and quad elements
     """
 
-    def __cinit__(self, bytes py_element_type, UInteger dimension=2):
+    def __cinit__(self, str py_element_type, UInteger dimension=2):
 
         self.ndim = 2
         # CONVERT TO CPP STRING EXPLICITLY
-        cdef string cpp_element_type = py_element_type
+        cdef string cpp_element_type = str.encode(py_element_type)
         # CREATE A CPP PostMeshCurve OBJECT AND CAST IT TO CPP PostMeshBase
         self.baseptr = <PostMeshBase*> new PostMeshCurve(cpp_element_type,dimension)
 
@@ -359,11 +361,11 @@ cdef class PostMeshSurfacePy(PostMeshBasePy):
     such as tetrahedra and hexahedra
     """
 
-    def __cinit__(self, bytes py_element_type, UInteger dimension=3):
+    def __cinit__(self, str py_element_type, UInteger dimension=3):
 
         self.ndim = 3
         # CONVERT TO CPP STRING EXPLICITLY
-        cdef string cpp_element_type = py_element_type
+        cdef string cpp_element_type = str.encode(py_element_type)
         self.baseptr = <PostMeshBase*>new PostMeshSurface(cpp_element_type,dimension)
 
     def GetSurfacesParameters(self):
