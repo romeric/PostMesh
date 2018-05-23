@@ -31,6 +31,7 @@ sourcefiles = ["PostMeshPy.pyx",
 
 
 # Set the compiler
+# Must be called as: "python setup.py build_ext CXX=/usr/bin/g++"
 args = sys.argv
 _cxx_specified = False
 if len(args) > 1:
