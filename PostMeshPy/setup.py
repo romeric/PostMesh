@@ -31,29 +31,21 @@ sourcefiles = ["PostMeshPy.pyx",
 
 
 # Set the compiler
-_cxx_compiler = get_config_vars()['CXX'].split(' ')[0]
-os.environ["CC"] = _cxx_compiler
-os.environ["CXX"] = _cxx_compiler
-
-# args = sys.argv
-# _cxx_specified = False
-# _cxx_cmd_line = 0
-# if len(args) > 1:
-#     for counter, arg in enumerate(args):
-#         if "CXX" in arg:
-#             _cxx_cmd_line = counter +1
-#             _cxx_specified = True
-#         if counter == _cxx_cmd_line:
-#             _cxx_compiler = arg
-# if _cxx_specified:
-#     os.environ["CC"] = _cxx_compiler
-#     os.environ["CXX"] = _cxx_compiler
-
-# Set manually if default variables do not work
-# _cxx_compiler = "/usr/local/bin/g++-7"
-# os.environ["CC"] = _cxx_compiler
-# os.environ["CXX"] = _cxx_compiler
-
+args = sys.argv
+_cxx_specified = False
+if len(args) > 1:
+    for counter, arg in enumerate(args):
+        if "CXX" in arg:
+            _cxx_specified = True
+            _cxx_compiler = arg.split("=")[-1]
+            args.remove(arg)
+if _cxx_specified:
+    os.environ["CC"] = _cxx_compiler
+    os.environ["CXX"] = _cxx_compiler
+else:
+    _cxx_compiler = get_config_vars()['CXX'].split(' ')[0]
+    os.environ["CC"] = _cxx_compiler
+    os.environ["CXX"] = _cxx_compiler
 
 
 # Compiler arguments
