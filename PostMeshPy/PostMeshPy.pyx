@@ -376,20 +376,20 @@ cdef class PostMeshSurfacePy(PostMeshBasePy):
         """Find which geometrical points lie on which geometrical surfaces/topological faces"""
         (<PostMeshSurface*>self.baseptr).GetGeomPointsOnCorrespondingFaces()
 
-    def IdentifySurfacesContainingFaces(self):
+    def IdentifySurfacesContainingFaces(self, Integer activate_bounding_box=0, Real bb_tolerance=1e-3):
         """Identify which geometrical surfaces contain which mesh faces,
         by solving a minimisation problem"""
-        (<PostMeshSurface*>self.baseptr).IdentifySurfacesContainingFaces()
+        (<PostMeshSurface*>self.baseptr).IdentifySurfacesContainingFaces(activate_bounding_box, bb_tolerance)
 
-    def IdentifyRemainingSurfacesByProjection(self):
+    def IdentifyRemainingSurfacesByProjection(self, Integer activate_bounding_box=0):
         """If identifying which geometrical surfaces contain which mesh faces,
         fails use proejction to identify the remaining surfaces"""
-        (<PostMeshSurface*>self.baseptr).IdentifyRemainingSurfacesByProjection()
+        (<PostMeshSurface*>self.baseptr).IdentifyRemainingSurfacesByProjection(activate_bounding_box)
 
-    def IdentifySurfacesContainingFacesByPureProjection(self):
+    def IdentifySurfacesContainingFacesByPureProjection(self, Integer activate_bounding_box=0, Real bb_tolerance=1e-3):
         """Identify which geometrical surfaces contain which mesh faces,
         solely by relying on projection"""
-        (<PostMeshSurface*>self.baseptr).IdentifySurfacesContainingFacesByPureProjection()
+        (<PostMeshSurface*>self.baseptr).IdentifySurfacesContainingFacesByPureProjection(activate_bounding_box, bb_tolerance)
 
     def IdentifySurfacesIntersections(self):
         """Identify which geometrical surfaces contain which mesh faces"""
@@ -482,7 +482,8 @@ cdef class PostMeshSurfacePy(PostMeshBasePy):
         str projection_type="orthogonal", Integer[::1] face_to_surface_map=None,
         Integer already_mapped=0, str internal_surface_identification_algorithm="minimisation",
         repair_dual_projection=False, Integer project_on_curves=1,
-        Integer modify_linear_mesh=0, Real orth_tol=1, Real[:,::1] FEbases=None):
+        Integer modify_linear_mesh=0, Real orth_tol=1, Real[:,::1] FEbases=None,
+        Integer activate_bounding_box=0, Real bb_tolerance=1e-3):
         """Convenience function for Python API. Performs point projection and
             point inversion at one go
 
@@ -549,10 +550,10 @@ cdef class PostMeshSurfacePy(PostMeshBasePy):
         (<PostMeshSurface*>self.baseptr).GetSurfacesParameters()
         (<PostMeshSurface*>self.baseptr).GetGeomPointsOnCorrespondingFaces()
         if surface_identification_algorithm == "minimisation":
-            (<PostMeshSurface*>self.baseptr).IdentifySurfacesContainingFaces()
-            (<PostMeshSurface*>self.baseptr).IdentifyRemainingSurfacesByProjection()
+            (<PostMeshSurface*>self.baseptr).IdentifySurfacesContainingFaces(activate_bounding_box, bb_tolerance)
+            # (<PostMeshSurface*>self.baseptr).IdentifyRemainingSurfacesByProjection(activate_bounding_box)
         elif surface_identification_algorithm == "projection":
-            (<PostMeshSurface*>self.baseptr).IdentifySurfacesContainingFacesByPureProjection()
+            (<PostMeshSurface*>self.baseptr).IdentifySurfacesContainingFacesByPureProjection(activate_bounding_box, bb_tolerance)
         elif surface_identification_algorithm == "supplied":
             if face_to_surface_map is not None:
                 (<PostMeshSurface*>self.baseptr).SupplySurfacesContainingFaces(&face_to_surface_map[0],

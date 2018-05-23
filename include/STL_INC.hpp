@@ -19,6 +19,7 @@
 #include <numeric>
 #include <utility>
 #include <limits>
+#include <chrono>
 #include <stdexcept>
 #ifdef WINDOWS
     #include <direct.h>

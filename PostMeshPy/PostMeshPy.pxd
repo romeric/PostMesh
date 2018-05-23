@@ -73,9 +73,9 @@ cdef extern from "PostMeshSurface.hpp":
         void Init() except +
         void GetSurfacesParameters()
         void GetGeomPointsOnCorrespondingFaces()
-        void IdentifyRemainingSurfacesByProjection()
-        void IdentifySurfacesContainingFacesByPureProjection()
-        void IdentifySurfacesContainingFaces()
+        void IdentifySurfacesContainingFaces(Integer activate_bounding_box, Real bb_tolerance)
+        void IdentifyRemainingSurfacesByProjection(Integer activate_bounding_box)
+        void IdentifySurfacesContainingFacesByPureProjection(Integer activate_bounding_box, Real bb_tolerance)
         void IdentifySurfacesIntersections()
         void SupplySurfacesContainingFaces(const Integer *arr, Integer rows, Integer already_mapped, Integer caller)
         void ProjectMeshOnSurface()
@@ -85,24 +85,24 @@ cdef extern from "PostMeshSurface.hpp":
         void ReturnModifiedMeshPoints(Real *points)
         vector[vector[Integer]] GetMeshFacesOnPlanarSurfaces()
         vector[Integer] GetDirichletFaces()
-        
 
-cdef extern from "PyInterfaceEmulator.hpp": 
-    
-    DirichletData ComputeDirichleteData (const char* iges_filename, Real scale, 
-        Real* points_array, Integer points_rows, Integer points_cols, 
-        UInteger* elements_array, const Integer element_rows, const Integer element_cols, 
+
+cdef extern from "PyInterfaceEmulator.hpp":
+
+    DirichletData ComputeDirichleteData (const char* iges_filename, Real scale,
+        Real* points_array, Integer points_rows, Integer points_cols,
+        UInteger* elements_array, const Integer element_rows, const Integer element_cols,
         UInteger* edges, const Integer edges_rows, const Integer edges_cols,
-        UInteger* faces, const Integer faces_rows, const Integer faces_cols, Real condition, 
+        UInteger* faces, const Integer faces_rows, const Integer faces_cols, Real condition,
         Real* boundary_fekete, const Integer fekete_rows, const Integer fekete_cols,
-        UInteger* criteria, const Integer criteria_rows, const Integer criteria_cols, 
+        UInteger* criteria, const Integer criteria_rows, const Integer criteria_cols,
         const Real precision)
 
-    DirichletData ComputeDirichleteData3D (const char* iges_filename, Real scale, 
-        Real* points_array, Integer points_rows, Integer points_cols, 
-        UInteger* elements_array, const Integer element_rows, const Integer element_cols, 
+    DirichletData ComputeDirichleteData3D (const char* iges_filename, Real scale,
+        Real* points_array, Integer points_rows, Integer points_cols,
+        UInteger* elements_array, const Integer element_rows, const Integer element_cols,
         UInteger* edges, const Integer edges_rows, const Integer edges_cols,
-        UInteger* faces, const Integer faces_rows, const Integer faces_cols, Real condition, 
+        UInteger* faces, const Integer faces_rows, const Integer faces_cols, Real condition,
         Real* boundary_fekete, const Integer fekete_rows, const Integer fekete_cols,
-        UInteger* criteria, const Integer criteria_rows, const Integer criteria_cols, 
+        UInteger* criteria, const Integer criteria_rows, const Integer criteria_cols,
         const Real precision)

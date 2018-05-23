@@ -2,7 +2,7 @@
 #include <PostMeshSurface.hpp>
 
 PostMeshSurface::PostMeshSurface(const PostMeshSurface& other)
-noexcept(std::is_copy_assignable<PostMeshSurface>::value) : PostMeshBase(other)
+noexcept(std::is_copy_constructible<PostMeshSurface>::value) : PostMeshBase(other)
 {
     // COPY CONSTRUCTOR
     this->ndim = other.ndim;
@@ -179,12 +179,17 @@ void PostMeshSurface::GetGeomPointsOnCorrespondingFaces()
 }
 
 
-void PostMeshSurface::IdentifySurfacesContainingFaces()
+void PostMeshSurface::IdentifySurfacesContainingFaces(Integer activate_bounding_box, Real bb_tolerance)
 {
     //! IDENTIFY GEOMETRICAL SURFACES CONTAINING MESH FACES
     const Integer no_face_vertices = this->GetNoFaceVertices();
     this->dirichlet_faces = Eigen::MatrixI::Constant(this->mesh_faces.rows(),no_face_vertices+1,-1);
     this->listfaces.clear();
+
+    if (activate_bounding_box)
+    {
+        this->GetBoundingBoxOnSurfaces(bb_tolerance);
+    }
 
     auto index_face = 0;
 
@@ -233,6 +238,23 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
                             face_vertices(ivertex,2) = z_surface;
                             break;
                         }
+                    }
+                }
+
+                if (activate_bounding_box)
+                {
+                    // GET THE MID-POINT OF THE FACE
+                    Eigen::RowVectorR coord_avg = face_vertices.colwise().sum().array()/no_face_vertices;
+
+                    // CHECK IF THE POINT IS OUTSIDE THE BOUNDING BOX
+                    if (coord_avg[0] < bbox_surfaces(isurface,0) ||
+                        coord_avg[1] < bbox_surfaces(isurface,1) ||
+                        coord_avg[2] < bbox_surfaces(isurface,2) ||
+                        coord_avg[0] > bbox_surfaces(isurface,3) ||
+                        coord_avg[1] > bbox_surfaces(isurface,4) ||
+                        coord_avg[2] > bbox_surfaces(isurface,5)) {
+                        // POINT IS OITSIDE THE BOX, MOVE TO NEXT MESH FACE
+                        continue;
                     }
                 }
 
@@ -298,7 +320,7 @@ void PostMeshSurface::IdentifySurfacesContainingFaces()
     this->IdentifyRemainingSurfacesByProjection();
 }
 
-void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
+void PostMeshSurface::IdentifyRemainingSurfacesByProjection(Integer activate_bounding_box)
 {
     //! IDENTIFY GEOMETRICAL SURFACES CONTAINING MESH FACES
     const Integer no_face_vertices = this->GetNoFaceVertices();
@@ -359,9 +381,19 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
                 // gp_Pnt middle_point(x_avg,y_avg,z_avg);
                 gp_Pnt middle_point(coord_avg[0],coord_avg[1],coord_avg[2]);
 
-                // IN 3D A MID-POINT IS NOT ENOUGH TO DECIDE WHICH MESH FACE IS ON WHICH SURFACE
-                // HENCE WE PROJECT THE MIDDLE POINT OF EVERY EDGE, THE REASON BEING THAT IF TWO
-                // EDGES OF A FACE IS ON A SURFACE THAN THE FACE IS ON THE SURFACE
+                if (activate_bounding_box)
+                {
+                    // CHECK IF THE POINT IS OUTSIDE THE BOUNDING BOX
+                    if (coord_avg[0] < bbox_surfaces(isurface,0) ||
+                        coord_avg[1] < bbox_surfaces(isurface,1) ||
+                        coord_avg[2] < bbox_surfaces(isurface,2) ||
+                        coord_avg[0] > bbox_surfaces(isurface,3) ||
+                        coord_avg[1] > bbox_surfaces(isurface,4) ||
+                        coord_avg[2] > bbox_surfaces(isurface,5)) {
+                        // POINT IS OITSIDE THE BOX, MOVE TO NEXT MESH FACE
+                        continue;
+                    }
+                }
 
                 // VERTEX POINTS
                 std::vector<gp_Pnt> face_gp_vertices(no_face_vertices), edge_mid_points(no_face_vertices);
@@ -510,13 +542,18 @@ void PostMeshSurface::IdentifyRemainingSurfacesByProjection()
     }
 }
 
-void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
+void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection(Integer activate_bounding_box, Real bb_tolerance)
 {
     //! IDENTIFY GEOMETRICAL SURFACES CONTAINING MESH FACES
     const Integer no_face_vertices = this->GetNoFaceVertices();
     this->dirichlet_faces = Eigen::MatrixI::Zero(this->mesh_faces.rows(),no_face_vertices+1);
     this->projection_ID = Eigen::MatrixI::Zero(this->mesh_faces.rows(),no_face_vertices+1);
     this->listfaces.clear();
+
+    if (activate_bounding_box)
+    {
+        this->GetBoundingBoxOnSurfaces(bb_tolerance);
+    }
 
     auto index_face = 0;
 
@@ -576,6 +613,19 @@ void PostMeshSurface::IdentifySurfacesContainingFacesByPureProjection()
             // LOOP OVER SURFACES
             for (UInteger isurface=0; isurface<this->geometry_surfaces.size(); ++isurface)
             {
+                if (activate_bounding_box)
+                {
+                    // CHECK IF THE POINT IS OUTSIDE THE BOUNDING BOX
+                    if (coord_avg[0] < bbox_surfaces(isurface,0) ||
+                        coord_avg[1] < bbox_surfaces(isurface,1) ||
+                        coord_avg[2] < bbox_surfaces(isurface,2) ||
+                        coord_avg[0] > bbox_surfaces(isurface,3) ||
+                        coord_avg[1] > bbox_surfaces(isurface,4) ||
+                        coord_avg[2] > bbox_surfaces(isurface,5)) {
+                        // POINT IS OITSIDE THE BOX, MOVE TO NEXT MESH FACE
+                        continue;
+                    }
+                }
                 // PROJECT THE NODES ON THE SURFACE AND GET THE NEAREST POINT
                 try
                 {
@@ -858,89 +908,6 @@ void PostMeshSurface::IdentifySurfacesIntersections()
             this->curve_surface_projection_flags(faces_with_curve_projection_edges_0[i],edge_order[j]) = 1;
         }
     }
-
-
-    // // FOR MAINTENANCE - OLD AND EXTREMELY INEFFICIENT APPROACH
-    // // BUILD EDGES FIRST
-    // const Integer no_face_vertices = this->GetNoFaceVertices();
-    // Eigen::MatrixI edges(this->dirichlet_faces.rows()*no_face_vertices,3);
-    // for (auto i=0; i < this->dirichlet_faces.rows(); ++i)
-    // {
-    //     if (this->mesh_element_type == "tet") {
-    //         edges(i,0) = this->dirichlet_faces(i,0);
-    //         edges(i,1) = this->dirichlet_faces(i,1);
-    //         edges(i,2) = this->dirichlet_faces(i,no_face_vertices);
-
-    //         edges(i+this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,0);
-    //         edges(i+this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
-    //         edges(i+this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
-
-    //         edges(i+2*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,1);
-    //         edges(i+2*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
-    //         edges(i+2*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
-    //     }
-    //     else if (this->mesh_element_type == "hex") {
-    //         edges(i,0) = this->dirichlet_faces(i,0);
-    //         edges(i,1) = this->dirichlet_faces(i,1);
-    //         edges(i,2) = this->dirichlet_faces(i,no_face_vertices);
-
-    //         edges(i+this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,1);
-    //         edges(i+this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,2);
-    //         edges(i+this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
-
-    //         edges(i+2*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,2);
-    //         edges(i+2*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,3);
-    //         edges(i+2*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
-
-    //         edges(i+3*this->dirichlet_faces.rows(),0) = this->dirichlet_faces(i,3);
-    //         edges(i+3*this->dirichlet_faces.rows(),1) = this->dirichlet_faces(i,0);
-    //         edges(i+3*this->dirichlet_faces.rows(),2) = this->dirichlet_faces(i,no_face_vertices);
-    //     }
-    // }
-
-    // Eigen::MatrixI edges_only = edges.block(0,0,edges.rows(),2);
-    // cnp::sort_rows(edges_only);
-    // edges.block(0,0,edges.rows(),2) = edges_only;
-
-
-    // const auto no_dir_faces = this->dirichlet_faces.rows();
-    // Eigen::MatrixI faces_with_curve_projection_edges(no_face_vertices*no_dir_faces,2);
-    // auto counter = 0;
-    // for (auto i=0; i<edges.rows();++i)
-    // {
-    //     for (auto j=i+1; j<edges.rows();++j)
-    //     {
-    //         if ( edges(i,0)==edges(j,0) && edges(i,1)==edges(j,1) && edges(i,2) != edges(j,2) )
-    //         {
-    //             faces_with_curve_projection_edges(2*counter,0) = i % no_dir_faces;
-    //             faces_with_curve_projection_edges(2*counter,1) = i / no_dir_faces;
-
-    //             faces_with_curve_projection_edges(2*counter+1,0) = j % no_dir_faces;
-    //             faces_with_curve_projection_edges(2*counter+1,1) = j / no_dir_faces;
-    //             counter++;
-    //             // BREAK AS AN EDGE CAN ONLY GET REPEATED TWICE
-    //             break;
-    //         }
-    //     }
-    // }
-
-    // auto arr_row = cnp::arange(2*counter);
-    // auto arr_col = cnp::arange(2);
-    // faces_with_curve_projection_edges = cnp::take(faces_with_curve_projection_edges,arr_row,arr_col);
-    // print(faces_with_curve_projection_edges);
-
-    // this->GetBoundaryPointsOrder();
-
-    // this->curve_surface_projection_flags.setZero(this->dirichlet_faces.rows(),this->mesh_faces.cols());
-    // for (auto i=0; i<faces_with_curve_projection_edges.rows(); ++i)
-    // {
-    //     auto current_edge = faces_with_curve_projection_edges(i,1);
-    //     auto edge_order = this->boundary_faces_order.row(current_edge);
-    //     for (auto j=1; j< edge_order.cols()-1; ++j)
-    //     {
-    //         this->curve_surface_projection_flags(faces_with_curve_projection_edges(i,0),edge_order[j]) = 1;
-    //     }
-    // }
 }
 
 void PostMeshSurface::ProjectMeshOnSurface()
@@ -1457,6 +1424,38 @@ void PostMeshSurface::GetBoundaryPointsOrder()
         std::vector<std::vector<Integer>> edges_order{edge0,edge1,edge2,edge3};
         this->boundary_faces_order = cnp::toEigen(edges_order);
     }
+}
+
+void PostMeshSurface::GetBoundingBoxOnSurfaces(Real bb_tolerance)
+{
+    std::chrono::high_resolution_clock::time_point t_bb = std::chrono::high_resolution_clock::now();
+
+    this->bbox_surfaces = Eigen::MatrixR::Zero(this->geometry_surfaces.size(),6);
+    for (UInteger isurface=0; isurface<this->geometry_surfaces.size(); ++isurface)
+    {
+        Bnd_Box BB;
+        GeomAdaptor_Surface current_surface = GeomAdaptor_Surface(this->geometry_surfaces[isurface]);
+        // Handle_Geom_BoundedSurface current_bounded_surface = Handle_Geom_BoundedSurface::DownCast(this->geometry_surfaces[isurface]);
+        // GeomAdaptor_Surface current_surface = GeomAdaptor_Surface(current_bounded_surface);
+        // Handle_Geom_BSplineSurface current_bsurface = GeomConvert::SurfaceToBSplineSurface(this->geometry_surfaces[isurface]);
+        // GeomAdaptor_Surface current_surface = GeomAdaptor_Surface(current_bsurface);
+        BndLib_AddSurface::Add(current_surface,
+            current_surface.FirstUParameter(),
+            current_surface.LastUParameter(),
+            current_surface.FirstVParameter(),
+            current_surface.LastVParameter(),
+            bb_tolerance,
+            BB);
+
+        BB.Get( this->bbox_surfaces(isurface,0), this->bbox_surfaces(isurface,1),
+                this->bbox_surfaces(isurface,2), this->bbox_surfaces(isurface,3),
+                this->bbox_surfaces(isurface,4), this->bbox_surfaces(isurface,5));
+        // std::cout << bbox_surfaces.row(isurface) << std::endl;
+    }
+
+    // t_bb = std::chrono::high_resolution_clock::now() - t_bb;
+    double elapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - t_bb).count();
+    print("Computed bounding box around CAD surfaces in", elapsed_time, "seconds");
 }
 
 std::vector<Integer> PostMeshSurface::GetDirichletFaces()

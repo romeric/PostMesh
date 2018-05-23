@@ -23,6 +23,11 @@
 #include <GeomProjLib.hxx>
 #include <GeomLib_Tool.hxx>
 #include <GeomLib_IsPlanarSurface.hxx>
+#include <Geom_BoundedSurface.hxx>
+#include <GeomConvert.hxx>
+#include <GeomAPI_ProjectPointOnCurve.hxx>
+#include <GeomAPI_ProjectPointOnSurf.hxx>
+#include <GeomAPI_IntCS.hxx>
 #include <ProjLib_CompProjectedCurve.hxx>
 #include <ProjLib_ProjectOnSurface.hxx>
 #include <BRepAdaptor_Curve.hxx>
@@ -38,8 +43,8 @@
 #include <BRepMesh_GeomTool.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
 #include <BRepClass_FaceClassifier.hxx>
-#include <GeomAPI_ProjectPointOnCurve.hxx>
-#include <GeomAPI_ProjectPointOnSurf.hxx>
+#include <BRepBndLib.hxx>
+#include <BndLib_AddSurface.hxx>
 #include <ShapeAnalysis_Curve.hxx>
 #include <ShapeAnalysis_Surface.hxx>
 #include <GCPnts_AbscissaPoint.hxx>
@@ -48,7 +53,6 @@
 #include <GeomConvert_CompCurveToBSplineCurve.hxx>
 #include <IntCurvesFace_Intersector.hxx>
 #include <IntCurveSurface_Intersection.hxx>
-#include <GeomAPI_IntCS.hxx>
 #include <Extrema_ExtPC.hxx>
 #include <Extrema_ExtPS.hxx>
 

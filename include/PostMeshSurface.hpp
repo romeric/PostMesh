@@ -37,9 +37,9 @@ public:
     void SurfacesToBsplineSurfaces();
     void GetSurfacesParameters();
     void GetGeomPointsOnCorrespondingFaces();
-    void IdentifySurfacesContainingFacesByPureProjection();
-    void IdentifyRemainingSurfacesByProjection();
-    void IdentifySurfacesContainingFaces();
+    void IdentifySurfacesContainingFacesByPureProjection(Integer activate_bounding_box=0, Real bb_tolerance=1e-3);
+    void IdentifyRemainingSurfacesByProjection(Integer activate_bounding_box=0);
+    void IdentifySurfacesContainingFaces(Integer activate_bounding_box=0, Real bb_tolerance=1e-3);
     void SupplySurfacesContainingFaces(const Integer *arr, Integer rows, Integer already_mapped = 0, Integer caller = 0);
     void IdentifySurfacesIntersections();
     void ProjectMeshOnSurface();
@@ -48,7 +48,8 @@ public:
     void MeshPointInversionSurface(Integer project_on_curves, Integer modify_linear_mesh = 0);
     void MeshPointInversionSurfaceArcLength(Integer project_on_curves, Real OrthTol, Real *FEbases, Integer rows, Integer cols);
     void GetBoundaryPointsOrder();
-    std::vector<std::vector<Integer> > GetMeshFacesOnPlanarSurfaces();
+    void GetBoundingBoxOnSurfaces(Real bb_tolerance=1e-3);
+    std::vector< std::vector<Integer> > GetMeshFacesOnPlanarSurfaces();
     std::vector<Integer> GetDirichletFaces();
 
 
@@ -57,6 +58,7 @@ public:
     Eigen::MatrixI boundary_faces_order;
     Eigen::MatrixR surfaces_Uparameters;
     Eigen::MatrixR surfaces_Vparameters;
+    Eigen::MatrixR bbox_surfaces;
 
 protected:
 
