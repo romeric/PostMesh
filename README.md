@@ -34,10 +34,10 @@ PostMesh depends on the following third party libraries:
 [Cython]:       http://www.cython.org
 [NumPy]:        http://www.numpy.org
 
-Installing these dependencies on a linux distribution is straight-forward. For building OpenCascade on Debian based systems, [here](https://github.com/jmwright/pythonocc_oce_setup) is an automated shell script. Note that the default location for `Eigen` and `OpenCascade` headers and libraries (under Linux and macOS) are `/usr/local/include/eigen/`, `/usr/local/include/oce/` and `/usr/local/lib` respectively.
+Installing these dependencies on unix based systems is straight-forward. For building OpenCascade on Debian based systems, do `apt-get install liboce-*`and on macOS `brew install oce`. Note that, the default location for `Eigen` and `OpenCascade` headers and libraries (under Linux and macOS) are `/usr/local/include/eigen/`, `/usr/local/include/oce/` and `/usr/local/lib`, respectively.
 
 ## Installation
-To build PostMesh shared library for C++ API, you typically do
+Both C++ and Python bindings are distributed through this repository. To build PostMesh shared library for C++ API, you typically do
 
     git clone https://github.com/romeric/PostMesh
     cd PostMesh
@@ -49,17 +49,19 @@ To further build the C++ examples, (after building and installing PostMesh share
     cd examples
     make
 
-To build Cython/Python bindings (make sure you are in PostMesh directory)
+The Python module is available through PyPi. To install it do:
 
-    cd PostMeshPy
+    pip install PostMeshPy
+
+To build Cython/Python bindings manually (make sure you are in PostMesh directory)
+
     [sudo] python setup.py install
 
 Or using pip
 
-    cd PostMeshPy
     python setup.py build_ext
     python setup.py bdist_wheel
-    cd ../../ && pip install PostMesh/PostMeshPy/dist/*.whl
+    cd ../ && pip install PostMesh/dist/*.whl
 
 
 ### Usage
