@@ -37,7 +37,12 @@ PostMesh depends on the following third party libraries:
 Installing these dependencies on unix based systems is straight-forward. For building OpenCascade on Debian based systems, do `apt-get install liboce-*`and on macOS `brew install oce`. Note that, the default location for `Eigen` and `OpenCascade` headers and libraries (under Linux and macOS) are `/usr/local/include/eigen/`, `/usr/local/include/oce/` and `/usr/local/lib`, respectively.
 
 ## Installation
-Both C++ and Python bindings are distributed through this repository. To build PostMesh shared library for C++ API, you typically do
+Both C++ and Python bindings are distributed through this repository. The Python module is available through PyPi
+
+    pip install PostMeshPy
+
+
+To build PostMesh shared library for C++ API, you typically do
 
     git clone https://github.com/romeric/PostMesh
     cd PostMesh
@@ -49,9 +54,6 @@ To further build the C++ examples, (after building and installing PostMesh share
     cd examples
     make
 
-The Python module is available through PyPi. To install it do:
-
-    pip install PostMeshPy
 
 To build Cython/Python bindings manually (make sure you are in PostMesh directory)
 
