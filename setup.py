@@ -131,7 +131,7 @@ def setup_package():
     setup(
         ext_modules = cythonize(extensions),
         name = "PostMeshPy",
-        version = "1.6",
+        version = "1.6.1",
         description = "A Python wrapper for PostMesh - a high order curvilinear mesh generator based on OpenCascade",
         long_description=long_description,
         long_description_content_type="text/markdown",
@@ -143,6 +143,9 @@ def setup_package():
           'numpy>=1.9',
           'cython>=0.23'],
         packages=find_packages(),
+        include_package_data=True,
+        package_data={'': ['bindings/*','src/*','include/*','example/*',
+            '*.pyx', '*.pxd', '*.h', '*.hpp', '*.c', '*.cpp', 'Makefile']},
         extra_files = "LICENSE.md"
     )
 
